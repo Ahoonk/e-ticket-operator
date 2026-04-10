@@ -23,3 +23,8 @@ export async function updateGangguan(id, payload) {
 export async function deleteGangguan(id) {
     await api.delete(`/gangguan/${id}`);
 }
+
+export async function completeGangguan(id, payload) {
+    const { data } = await api.post(`/gangguan/${id}/complete`, payload);
+    return data;
+}

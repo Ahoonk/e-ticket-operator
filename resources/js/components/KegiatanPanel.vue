@@ -9,6 +9,7 @@
       </div>
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <button
+          type="button"
           class="w-full rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 sm:w-auto"
           @click="load"
         >
@@ -16,6 +17,7 @@
         </button>
         <button
           v-if="canManage"
+          type="button"
           class="w-full rounded-lg bg-emerald-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto"
           @click="emit('create')"
         >
@@ -92,6 +94,7 @@
 
         <div v-if="canManage" class="mt-4 flex flex-wrap gap-2">
           <button
+            type="button"
             class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
             @click="emit('edit', item)"
             aria-label="Edit"
@@ -103,6 +106,7 @@
             </svg>
           </button>
           <button
+            type="button"
             class="rounded-lg border border-rose-500/40 px-2 py-1 text-[10px] text-rose-200 hover:border-rose-400"
             @click="remove(item.id)"
             aria-label="Hapus"
@@ -114,6 +118,75 @@
             </svg>
           </button>
         </div>
+
+        <div v-else-if="canComplete && item.status === 'PROSES'" class="mt-4">
+          <button
+            type="button"
+            class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+            @click="openComplete(item)"
+          >
+            Selesai
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-if="showCompleteModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
+      @click.self="closeComplete"
+    >
+      <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-semibold text-white">Selesaikan Kegiatan</h3>
+            <p class="mt-1 text-sm text-slate-400">
+              Isi kendala, tindak lanjut/solusi, dan keterangan sebelum status diubah menjadi selesai.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+            @click="closeComplete"
+          >
+            Tutup
+          </button>
+        </div>
+
+        <div v-if="completeError" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+          {{ completeError }}
+        </div>
+
+        <form class="mt-5 grid gap-4" @submit.prevent="submitComplete">
+          <label class="grid gap-2 text-sm text-slate-300">
+            Kendala
+            <textarea v-model="completeForm.kendala" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Tindak Lanjut/Solusi
+            <textarea v-model="completeForm.tindak_lanjut" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Keterangan
+            <textarea v-model="completeForm.keterangan" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+          </label>
+
+          <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
+            >
+              {{ completeLoading ? 'Menyimpan...' : 'Submit & Selesai' }}
+            </button>
+            <button
+              type="button"
+              class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+              @click="closeComplete"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -122,7 +195,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { deleteGangguan, listGangguan } from '../services/gangguan';
+import { completeGangguan, deleteGangguan, listGangguan } from '../services/gangguan';
 
 const props = defineProps({
   refreshKey: {
@@ -132,6 +205,10 @@ const props = defineProps({
   canManage: {
     type: Boolean,
     default: true,
+  },
+  canComplete: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -143,6 +220,15 @@ const error = ref(null);
 const statusOptions = ['BELUM DIKERJAKAN', 'PROSES', 'SELESAI'];
 const search = ref('');
 const statusFilter = ref('all');
+const showCompleteModal = ref(false);
+const selectedItem = ref(null);
+const completeLoading = ref(false);
+const completeError = ref(null);
+const completeForm = ref({
+  kendala: '',
+  tindak_lanjut: '',
+  keterangan: '',
+});
 
 const filteredItems = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -197,14 +283,43 @@ const remove = async (id) => {
   }
 };
 
-const statusClass = (status) => {
-  if (status === 'SELESAI') {
-    return 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40';
+const openComplete = (item) => {
+  selectedItem.value = item;
+  completeError.value = null;
+  completeForm.value = {
+    kendala: item.kendala || '',
+    tindak_lanjut: item.tindak_lanjut || '',
+    keterangan: item.keterangan || '',
+  };
+  showCompleteModal.value = true;
+};
+
+const closeComplete = () => {
+  showCompleteModal.value = false;
+  selectedItem.value = null;
+  completeLoading.value = false;
+  completeError.value = null;
+  completeForm.value = {
+    kendala: '',
+    tindak_lanjut: '',
+    keterangan: '',
+  };
+};
+
+const submitComplete = async () => {
+  if (!selectedItem.value) return;
+
+  completeLoading.value = true;
+  completeError.value = null;
+  try {
+    await completeGangguan(selectedItem.value.id, { ...completeForm.value });
+    closeComplete();
+    await load();
+  } catch (err) {
+    completeError.value = getErrorMessage(err, 'Gagal menyelesaikan kegiatan.');
+  } finally {
+    completeLoading.value = false;
   }
-  if (status === 'PROSES') {
-    return 'bg-amber-400/20 text-amber-200 border border-amber-400/40';
-  }
-  return 'bg-rose-500/20 text-rose-200 border border-rose-400/40';
 };
 
 const statusDot = (status) => {

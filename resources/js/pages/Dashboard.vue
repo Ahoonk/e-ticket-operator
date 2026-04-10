@@ -51,6 +51,7 @@
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"
           :can-manage="canManageKegiatan"
+          :can-complete="props.user?.role === 'user'"
           @create="openCreate"
           @edit="openEdit"
         />
@@ -111,7 +112,7 @@ const visibleMenu = computed(() => {
   }
 
   if (props.user?.role === 'user') {
-    return menu.filter((item) => ['kegiatan', 'opd'].includes(item.key));
+    return menu.filter((item) => item.key === 'kegiatan');
   }
 
   return menu.filter((item) => ['kegiatan', 'opd'].includes(item.key));

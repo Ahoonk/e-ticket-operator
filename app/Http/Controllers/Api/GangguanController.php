@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 
 class GangguanController extends Controller
 {
+    private function isAssignedToUser(Gangguan $gangguan, $user): bool
+    {
+        if (!$user) {
+            return false;
+        }
+
+        $needle = str_replace(' ', '', trim($user->name));
+
+        return str_contains(
+            ',' . str_replace(' ', '', (string) $gangguan->tim_bertugas) . ',',
+            ',' . $needle . ','
+        );
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -109,6 +123,46 @@ class GangguanController extends Controller
         ]);
 
         $gangguan->update($data);
+
+        return response()->json($gangguan);
+    }
+
+    /**
+     * Mark a user's assigned gangguan as completed.
+     */
+    public function complete(Request $request, Gangguan $gangguan)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'user') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if (!$this->isAssignedToUser($gangguan, $user)) {
+            return response()->json(['message' => 'Kegiatan ini bukan untuk Anda.'], 403);
+        }
+
+        if ($gangguan->status === 'SELESAI') {
+            return response()->json(['message' => 'Kegiatan sudah selesai.'], 422);
+        }
+
+        if ($gangguan->status !== 'PROSES') {
+            return response()->json(['message' => 'Kegiatan harus berstatus PROSES sebelum diselesaikan.'], 422);
+        }
+
+        $data = $request->validate([
+            'kendala' => ['required', 'string'],
+            'tindak_lanjut' => ['required', 'string'],
+            'keterangan' => ['required', 'string'],
+        ]);
+
+        $gangguan->update([
+            'kendala' => $data['kendala'],
+            'tindak_lanjut' => $data['tindak_lanjut'],
+            'keterangan' => $data['keterangan'],
+            'status' => 'SELESAI',
+            'selesai_pengerjaan' => now()->toDateString(),
+        ]);
 
         return response()->json($gangguan);
     }

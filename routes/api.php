@@ -20,5 +20,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('opd', OpdController::class)->except(['show']);
     Route::apiResource('users', UserController::class)->except(['show'])->middleware('superadmin');
     Route::get('/gangguan', [GangguanController::class, 'index']);
+    Route::post('/gangguan/{gangguan}/complete', [GangguanController::class, 'complete']);
     Route::apiResource('gangguan', GangguanController::class)->only(['store', 'show', 'update', 'destroy']);
 });
