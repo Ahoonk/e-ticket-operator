@@ -50,6 +50,7 @@
         <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"
+          :can-manage="canManageKegiatan"
           @create="openCreate"
           @edit="openEdit"
         />
@@ -98,6 +99,7 @@ const refreshKey = ref(0);
 const editingItem = ref(null);
 
 const isSuperadmin = computed(() => props.user?.role === 'superadmin');
+const canManageKegiatan = computed(() => props.user?.role !== 'user');
 
 const visibleMenu = computed(() => {
   if (props.user?.role === 'superadmin') {

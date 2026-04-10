@@ -11,9 +11,20 @@ class GangguanController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $items = Gangguan::orderByDesc('tanggal_gangguan')
+        $query = Gangguan::query();
+
+        $user = $request->user();
+        if ($user && $user->role === 'user') {
+            $needle = str_replace(' ', '', trim($user->name));
+            $query->whereRaw(
+                "CONCAT(',', REPLACE(COALESCE(tim_bertugas, ''), ' ', ''), ',') LIKE ?",
+                ['%,'.$needle.',%']
+            );
+        }
+
+        $items = $query->orderByDesc('tanggal_gangguan')
             ->orderByDesc('id')
             ->get();
 
@@ -45,6 +56,10 @@ class GangguanController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user()?->role === 'user') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $data = $request->validate([
             'tanggal_gangguan' => ['nullable', 'date'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
@@ -76,6 +91,10 @@ class GangguanController extends Controller
      */
     public function update(Request $request, Gangguan $gangguan)
     {
+        if ($request->user()?->role === 'user') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $data = $request->validate([
             'tanggal_gangguan' => ['nullable', 'date'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
@@ -99,6 +118,10 @@ class GangguanController extends Controller
      */
     public function destroy(Gangguan $gangguan)
     {
+        if (request()->user()?->role === 'user') {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $gangguan->delete();
 
         return response()->json(['message' => 'deleted']);

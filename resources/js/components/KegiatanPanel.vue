@@ -2,8 +2,10 @@
   <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-lg font-semibold text-white">Daftar Kegiatan</h2>
-        <p class="mt-1 text-sm text-slate-400">Kelola laporan gangguan jaringan.</p>
+        <h2 class="text-lg font-semibold text-white">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
+        <p class="mt-1 text-sm text-slate-400">
+          {{ canManage ? 'Kelola laporan gangguan jaringan.' : 'Lihat kegiatan yang ditugaskan kepada Anda.' }}
+        </p>
       </div>
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <button
@@ -13,6 +15,7 @@
           Refresh
         </button>
         <button
+          v-if="canManage"
           class="w-full rounded-lg bg-emerald-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto"
           @click="emit('create')"
         >
@@ -87,7 +90,7 @@
           </div>
         </div>
 
-        <div class="mt-4 flex flex-wrap gap-2">
+        <div v-if="canManage" class="mt-4 flex flex-wrap gap-2">
           <button
             class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
             @click="emit('edit', item)"
@@ -125,6 +128,10 @@ const props = defineProps({
   refreshKey: {
     type: Number,
     default: 0,
+  },
+  canManage: {
+    type: Boolean,
+    default: true,
   },
 });
 
