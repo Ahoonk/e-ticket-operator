@@ -99,9 +99,21 @@ const editingItem = ref(null);
 
 const isSuperadmin = computed(() => props.user?.role === 'superadmin');
 
-const visibleMenu = computed(() =>
-  menu.filter((item) => (item.key === 'user' ? isSuperadmin.value : true)),
-);
+const visibleMenu = computed(() => {
+  if (props.user?.role === 'superadmin') {
+    return menu;
+  }
+
+  if (props.user?.role === 'admin') {
+    return menu.filter((item) => item.key !== 'user');
+  }
+
+  if (props.user?.role === 'user') {
+    return menu.filter((item) => ['kegiatan', 'opd'].includes(item.key));
+  }
+
+  return menu.filter((item) => ['kegiatan', 'opd'].includes(item.key));
+});
 
 const activeLabel = computed(() => {
   if (active.value === 'kegiatan-form') return 'Buat Kegiatan';
