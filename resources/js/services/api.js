@@ -10,7 +10,13 @@ const api = axios.create({
 });
 
 export async function csrf() {
-    await axios.get('/sanctum/csrf-cookie');
+    await axios.get('/sanctum/csrf-cookie', {
+        withCredentials: true,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            Accept: 'application/json',
+        },
+    });
 }
 
 export default api;

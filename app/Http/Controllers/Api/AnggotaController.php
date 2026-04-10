@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Anggota;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AnggotaController extends Controller
 {
@@ -13,7 +17,22 @@ class AnggotaController extends Controller
      */
     public function index()
     {
-        $items = Anggota::orderByDesc('id')->get();
+        $items = Anggota::query()
+            ->with('user')
+            ->whereHas('user', function ($query) {
+                $query->where('role', 'user');
+            })
+            ->orderByDesc('id')
+            ->get()
+            ->map(function (Anggota $anggota) {
+                return [
+                    'id' => $anggota->id,
+                    'user_id' => $anggota->user_id,
+                    'nama' => $anggota->user?->name ?? $anggota->nama,
+                    'telepon' => $anggota->telepon,
+                    'email' => $anggota->user?->email ?? $anggota->email,
+                ];
+            });
 
         return response()->json($items);
     }
@@ -29,7 +48,28 @@ class AnggotaController extends Controller
             'email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        $item = Anggota::create($data);
+        $temporaryPassword = Str::random(12);
+
+        $item = DB::transaction(function () use ($data, $temporaryPassword) {
+            $user = User::create([
+                'name' => $data['nama'],
+                'email' => $data['email'] ?? (Str::slug($data['nama']).'.'.Str::lower(Str::random(6)).'@example.com'),
+                'password' => Hash::make($temporaryPassword),
+                'role' => 'user',
+            ]);
+
+            $anggota = Anggota::create([
+                'user_id' => $user->id,
+                'nama' => $user->name,
+                'telepon' => $data['telepon'] ?? null,
+                'email' => $user->email,
+            ]);
+
+            return [
+                'anggota' => $anggota,
+                'temporary_password' => $temporaryPassword,
+            ];
+        });
 
         return response()->json($item, 201);
     }
@@ -39,7 +79,15 @@ class AnggotaController extends Controller
      */
     public function show(Anggota $anggota)
     {
-        return response()->json($anggota);
+        $anggota->load('user');
+
+        return response()->json([
+            'id' => $anggota->id,
+            'user_id' => $anggota->user_id,
+            'nama' => $anggota->user?->name ?? $anggota->nama,
+            'telepon' => $anggota->telepon,
+            'email' => $anggota->user?->email ?? $anggota->email,
+        ]);
     }
 
     /**
@@ -48,14 +96,24 @@ class AnggotaController extends Controller
     public function update(Request $request, Anggota $anggota)
     {
         $data = $request->validate([
-            'nama' => ['required', 'string', 'max:255'],
             'telepon' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
         ]);
 
-        $anggota->update($data);
+        DB::transaction(function () use ($anggota, $data) {
+            $anggota->update([
+                'telepon' => $data['telepon'] ?? null,
+            ]);
+        });
 
-        return response()->json($anggota);
+        $anggota->load('user');
+
+        return response()->json([
+            'id' => $anggota->id,
+            'user_id' => $anggota->user_id,
+            'nama' => $anggota->user?->name ?? $anggota->nama,
+            'telepon' => $anggota->telepon,
+            'email' => $anggota->user?->email ?? $anggota->email,
+        ]);
     }
 
     /**
@@ -63,7 +121,10 @@ class AnggotaController extends Controller
      */
     public function destroy(Anggota $anggota)
     {
-        $anggota->delete();
+        DB::transaction(function () use ($anggota) {
+            $anggota->user?->delete();
+            $anggota->delete();
+        });
 
         return response()->json(['message' => 'deleted']);
     }

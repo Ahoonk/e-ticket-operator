@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Anggota;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -17,11 +19,21 @@ class UserController extends Controller
     public function index()
     {
         $items = User::query()
-            ->select(['id', 'name', 'email', 'role', 'created_at'])
+            ->with('anggota')
             ->orderByDesc('id')
             ->get();
-
-        return response()->json($items);
+        
+        return response()->json(
+            $items->map(function (User $user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'role' => $user->role,
+                    'telepon' => $user->anggota?->telepon,
+                ];
+            })
+        );
     }
 
     /**
@@ -34,13 +46,37 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', Rule::in(['superadmin', 'admin', 'user'])],
+            'telepon' => ['nullable', 'string', 'max:50'],
         ]);
 
-        $data['password'] = Hash::make($data['password']);
+        $user = DB::transaction(function () use ($data) {
+            $data['password'] = Hash::make($data['password']);
 
-        $user = User::create($data);
+            $user = User::create($data);
 
-        return response()->json($user->only(['id', 'name', 'email', 'role']), 201);
+            if ($user->role === 'user') {
+                Anggota::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'nama' => $user->name,
+                        'email' => $user->email,
+                        'telepon' => $data['telepon'] ?? null,
+                    ]
+                );
+            }
+
+            return $user;
+        });
+
+        $user->load('anggota');
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'telepon' => $user->anggota?->telepon,
+        ], 201);
     }
 
     /**
@@ -56,17 +92,45 @@ class UserController extends Controller
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', Rule::in(['superadmin', 'admin', 'user'])],
+            'telepon' => ['nullable', 'string', 'max:50'],
         ]);
 
-        if (!empty($data['password'])) {
-            $data['password'] = Hash::make($data['password']);
-        } else {
-            unset($data['password']);
-        }
+        $updatedUser = DB::transaction(function () use ($user, $data) {
+            $previousRole = $user->role;
 
-        $user->update($data);
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+            } else {
+                unset($data['password']);
+            }
 
-        return response()->json($user->only(['id', 'name', 'email', 'role']));
+            $user->update($data);
+
+            if ($user->role === 'user') {
+                Anggota::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'nama' => $user->name,
+                        'email' => $user->email,
+                        'telepon' => $data['telepon'] ?? $user->anggota?->telepon,
+                    ]
+                );
+            } elseif ($previousRole === 'user') {
+                $user->anggota?->delete();
+            }
+
+            return $user;
+        });
+
+        $updatedUser->load('anggota');
+
+        return response()->json([
+            'id' => $updatedUser->id,
+            'name' => $updatedUser->name,
+            'email' => $updatedUser->email,
+            'role' => $updatedUser->role,
+            'telepon' => $updatedUser->anggota?->telepon,
+        ]);
     }
 
     /**
@@ -78,7 +142,10 @@ class UserController extends Controller
             return response()->json(['message' => 'Tidak bisa menghapus akun sendiri.'], 422);
         }
 
-        $user->delete();
+        DB::transaction(function () use ($user) {
+            $user->anggota?->delete();
+            $user->delete();
+        });
 
         return response()->json(['message' => 'deleted']);
     }

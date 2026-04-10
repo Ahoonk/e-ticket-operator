@@ -3,7 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-lg font-semibold text-white">Daftar Anggota</h2>
-        <p class="mt-1 text-sm text-slate-400">Input data anggota untuk kebutuhan kegiatan.</p>
+        <p class="mt-1 text-sm text-slate-400">
+          Data user dengan role <span class="font-semibold text-slate-200">user</span>.
+        </p>
       </div>
       <button
         class="w-full rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 sm:w-auto"
@@ -16,37 +18,6 @@
     <div v-if="error" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
       {{ error }}
     </div>
-
-    <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
-      <label class="grid gap-2 text-sm text-slate-300 sm:col-span-2">
-        Nama
-        <input v-model="form.nama" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-      </label>
-      <label class="grid gap-2 text-sm text-slate-300">
-        Nomor HP
-        <input v-model="form.telepon" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
-      </label>
-      <label class="grid gap-2 text-sm text-slate-300">
-        Email
-        <input v-model="form.email" type="email" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
-      </label>
-
-      <div class="flex flex-wrap gap-3 sm:col-span-2">
-        <button
-          class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
-        >
-          {{ isEditing ? 'Simpan Perubahan' : 'Tambah Anggota' }}
-        </button>
-        <button
-          v-if="isEditing"
-          type="button"
-          class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
-          @click="cancelEdit"
-        >
-          Batal
-        </button>
-      </div>
-    </form>
 
     <div class="mt-6 overflow-x-auto rounded-xl border border-slate-800">
       <table class="min-w-[680px] w-full border-collapse text-[11px] sm:text-xs">
@@ -101,26 +72,86 @@
         </tbody>
       </table>
     </div>
+
+    <div
+      v-if="showModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
+      @click.self="closeModal"
+    >
+      <div class="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-semibold text-white">Edit Anggota</h3>
+            <p class="mt-1 text-sm text-slate-400">Nomor telepon bisa diperbarui dari modal ini.</p>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+            @click="closeModal"
+          >
+            Tutup
+          </button>
+        </div>
+
+        <form class="mt-5 grid gap-4" @submit.prevent="submit">
+          <label class="grid gap-2 text-sm text-slate-300">
+            Nama
+            <input
+              :value="selectedAnggota?.nama || ''"
+              class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-400"
+              readonly
+            />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Email
+            <input
+              :value="selectedAnggota?.email || ''"
+              class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-slate-400"
+              readonly
+            />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Nomor HP
+            <input
+              v-model="form.telepon"
+              class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2"
+              placeholder="Masukkan nomor HP"
+            />
+          </label>
+
+          <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+            <button
+              class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
+            >
+              Simpan
+            </button>
+            <button
+              type="button"
+              class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+              @click="closeModal"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { createAnggota, deleteAnggota, listAnggota, updateAnggota } from '../services/anggota';
+import { deleteAnggota, listAnggota, updateAnggota } from '../services/anggota';
 
 const items = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const editingId = ref(null);
-
+const showModal = ref(false);
+const selectedAnggota = ref(null);
 const form = ref({
-  nama: '',
   telepon: '',
-  email: '',
 });
-
-const isEditing = computed(() => editingId.value !== null);
 
 const load = async () => {
   loading.value = true;
@@ -134,37 +165,29 @@ const load = async () => {
   }
 };
 
-const resetForm = () => {
-  editingId.value = null;
-  form.value = {
-    nama: '',
-    telepon: '',
-    email: '',
-  };
-};
-
 const startEdit = (item) => {
-  editingId.value = item.id;
+  selectedAnggota.value = item;
   form.value = {
-    nama: item.nama,
     telepon: item.telepon || '',
-    email: item.email || '',
   };
+  showModal.value = true;
 };
 
-const cancelEdit = () => {
-  resetForm();
+const closeModal = () => {
+  showModal.value = false;
+  selectedAnggota.value = null;
+  form.value = {
+    telepon: '',
+  };
 };
 
 const submit = async () => {
+  if (!selectedAnggota.value) return;
+
   error.value = null;
   try {
-    if (editingId.value) {
-      await updateAnggota(editingId.value, { ...form.value });
-    } else {
-      await createAnggota({ ...form.value });
-    }
-    resetForm();
+    await updateAnggota(selectedAnggota.value.id, { ...form.value });
+    closeModal();
     await load();
   } catch (err) {
     error.value = getErrorMessage(err, 'Gagal menyimpan anggota.');

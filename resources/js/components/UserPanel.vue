@@ -5,54 +5,25 @@
         <h2 class="text-lg font-semibold text-white">Daftar User</h2>
         <p class="mt-1 text-sm text-slate-400">Buat akun untuk login ke sistem.</p>
       </div>
-      <button
-        class="w-full rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 sm:w-auto"
-        @click="load"
-      >
-        Refresh
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="w-full rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 sm:w-auto"
+          @click="load"
+        >
+          Refresh
+        </button>
+        <button
+          class="w-full rounded-lg bg-emerald-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto"
+          @click="openCreate"
+        >
+          Tambah User
+        </button>
+      </div>
     </div>
 
     <div v-if="error" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
       {{ error }}
     </div>
-
-    <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
-      <label class="grid gap-2 text-sm text-slate-300 sm:col-span-2">
-        Nama
-        <input v-model="form.name" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-      </label>
-      <label class="grid gap-2 text-sm text-slate-300">
-        Email
-        <input v-model="form.email" type="email" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-      </label>
-      <label class="grid gap-2 text-sm text-slate-300">
-        Password
-        <input v-model="form.password" type="password" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" :required="!isEditing" />
-      </label>
-      <label class="grid gap-2 text-sm text-slate-300">
-        Role
-        <select v-model="form.role" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2">
-          <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
-        </select>
-      </label>
-
-      <div class="flex flex-wrap gap-3 sm:col-span-2">
-        <button
-          class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
-        >
-          {{ isEditing ? 'Simpan Perubahan' : 'Tambah User' }}
-        </button>
-        <button
-          v-if="isEditing"
-          type="button"
-          class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
-          @click="cancelEdit"
-        >
-          Batal
-        </button>
-      </div>
-    </form>
 
     <div class="mt-6 overflow-x-auto rounded-xl border border-slate-800">
       <table class="min-w-[700px] w-full border-collapse text-[11px] sm:text-xs">
@@ -111,6 +82,77 @@
         </tbody>
       </table>
     </div>
+
+    <div
+      v-if="showModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
+      @click.self="closeModal"
+    >
+      <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-semibold text-white">
+              {{ isEditing ? 'Edit User' : 'Tambah User' }}
+            </h3>
+            <p class="mt-1 text-sm text-slate-400">
+              {{ isEditing ? 'Perbarui data user di sini.' : 'Buat akun baru dari modal ini.' }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+            @click="closeModal"
+          >
+            Tutup
+          </button>
+        </div>
+
+        <form class="mt-5 grid gap-4 sm:grid-cols-2" @submit.prevent="submit">
+          <label class="grid gap-2 text-sm text-slate-300 sm:col-span-2">
+            Nama
+            <input v-model="form.name" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Email
+            <input v-model="form.email" type="email" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Nomor HP
+            <input v-model="form.telepon" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Password
+            <input
+              v-model="form.password"
+              type="password"
+              class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2"
+              :required="!isEditing"
+            />
+          </label>
+          <label class="grid gap-2 text-sm text-slate-300">
+            Role
+            <select v-model="form.role" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2">
+              <option v-for="role in roles" :key="role" :value="role">{{ role }}</option>
+            </select>
+          </label>
+
+          <div class="sm:col-span-2 flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+            <button
+              class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
+            >
+              {{ isEditing ? 'Simpan Perubahan' : 'Tambah User' }}
+            </button>
+            <button
+              type="button"
+              class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+              @click="closeModal"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -123,11 +165,13 @@ const items = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const editingId = ref(null);
+const showModal = ref(false);
 const roles = ['superadmin', 'admin', 'user'];
 
 const form = ref({
   name: '',
   email: '',
+  telepon: '',
   password: '',
   role: 'user',
 });
@@ -151,9 +195,15 @@ const resetForm = () => {
   form.value = {
     name: '',
     email: '',
+    telepon: '',
     password: '',
     role: 'user',
   };
+};
+
+const openCreate = () => {
+  resetForm();
+  showModal.value = true;
 };
 
 const startEdit = (item) => {
@@ -161,12 +211,15 @@ const startEdit = (item) => {
   form.value = {
     name: item.name,
     email: item.email,
+    telepon: item.telepon || '',
     password: '',
     role: item.role,
   };
+  showModal.value = true;
 };
 
-const cancelEdit = () => {
+const closeModal = () => {
+  showModal.value = false;
   resetForm();
 };
 
@@ -178,7 +231,7 @@ const submit = async () => {
     } else {
       await createUser({ ...form.value });
     }
-    resetForm();
+    closeModal();
     await load();
   } catch (err) {
     error.value = getErrorMessage(err, 'Gagal menyimpan user.');
