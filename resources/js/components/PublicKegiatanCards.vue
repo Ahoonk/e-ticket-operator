@@ -66,14 +66,6 @@
       </div>
     </div>
 
-    <div v-if="hasMore" class="mt-6 flex justify-center">
-      <button
-        class="rounded-full border border-slate-700 px-4 py-2 text-sm text-slate-200 hover:border-slate-500"
-        @click="loadMore"
-      >
-        Muat Lainnya
-      </button>
-    </div>
   </section>
 </template>
 
@@ -85,18 +77,13 @@ import { listGangguanPublic } from '../services/gangguan';
 const items = ref([]);
 const loading = ref(false);
 const error = ref(null);
-const page = ref(1);
-const pageSize = 6;
-const meta = ref(null);
 
 const load = async () => {
   loading.value = true;
   error.value = null;
   try {
-    page.value = 1;
-    const response = await listGangguanPublic({ page: page.value, limit: pageSize });
-    items.value = response.data || [];
-    meta.value = response.meta || null;
+    const response = await listGangguanPublic();
+    items.value = response || [];
   } catch (err) {
     error.value = getErrorMessage(err, 'Gagal memuat daftar kegiatan.');
   } finally {
@@ -124,29 +111,6 @@ const sortedItems = computed(() => {
     return (b.id || 0) - (a.id || 0);
   });
 });
-
-const hasMore = computed(() => {
-  if (!meta.value) return false;
-  return meta.value.current_page < meta.value.last_page;
-});
-
-const loadMore = async () => {
-  if (loading.value || !hasMore.value) return;
-  loading.value = true;
-  error.value = null;
-  try {
-    const nextPage = page.value + 1;
-    const response = await listGangguanPublic({ page: nextPage, limit: pageSize });
-    const nextItems = response.data || [];
-    items.value = [...items.value, ...nextItems];
-    page.value = nextPage;
-    meta.value = response.meta || meta.value;
-  } catch (err) {
-    error.value = getErrorMessage(err, 'Gagal memuat daftar kegiatan.');
-  } finally {
-    loading.value = false;
-  }
-};
 
 const statusDot = (status) => {
   if (status === 'SELESAI') return 'bg-emerald-400';

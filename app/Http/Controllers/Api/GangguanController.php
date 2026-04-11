@@ -50,17 +50,9 @@ class GangguanController extends Controller
      */
     public function publicIndex(Request $request)
     {
-        $limit = (int) $request->query('limit', 6);
-        if ($limit <= 0) {
-            $limit = 6;
-        }
-        if ($limit > 24) {
-            $limit = 24;
-        }
-
         $items = Gangguan::orderByDesc('tanggal_gangguan')
             ->orderByDesc('id')
-            ->paginate($limit);
+            ->get();
 
         return response()->json($items);
     }
