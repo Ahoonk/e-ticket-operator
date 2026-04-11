@@ -5,7 +5,10 @@
       <div class="absolute bottom-0 right-0 h-72 w-72 translate-x-1/3 translate-y-1/3 rounded-full bg-sky-500/20 blur-3xl"></div>
     </div>
 
-    <main class="relative mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12">
+    <main
+      class="relative mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12"
+      :class="!user ? 'h-screen overflow-hidden' : 'min-h-screen'"
+    >
       <header>
         <p class="text-sm uppercase tracking-[0.3em] text-emerald-300/70">Kegiatan Jaringan : LIVE REPORT</p>
         <h1 class="mt-2 text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">Kegiatan Tim TA Operator Komputer</h1>
@@ -18,7 +21,7 @@
         <p class="text-slate-300">Memuat data user...</p>
       </div>
 
-      <div v-else-if="!user" class="relative">
+      <div v-else-if="!user" class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
         <PublicKegiatanCards>
           <template #action>
             <button

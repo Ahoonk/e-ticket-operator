@@ -1,5 +1,5 @@
 <template>
-  <section class="w-full">
+  <section class="flex min-h-0 flex-1 flex-col">
     <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h2 class="text-lg font-semibold text-white">Kegiatan Terbaru</h2>
@@ -24,48 +24,46 @@
       Memuat daftar kegiatan...
     </div>
 
-    <div v-else class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <div
-        v-for="item in sortedItems"
-        :key="item.id"
-        class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
-      >
-        <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-200">
-            <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
-            {{ item.status || 'BELUM DIKERJAKAN' }}
-          </span>
-          <span class="text-xs text-slate-500">{{ formatDate(item.tanggal_gangguan) }}</span>
-        </div>
-
-        <h3 class="mt-4 text-base font-semibold text-white">
-          {{ item.jenis_gangguan || 'Tanpa judul' }}
-        </h3>
-        <p class="mt-1 text-sm text-slate-400">
-          {{ item.lokasi_opd || 'Lokasi belum diisi' }}
-        </p>
-
-        <div class="mt-4 grid gap-2 text-xs text-slate-400">
-          <div>
-            <span class="text-slate-500">Keterangan:</span>
-            <span class="ml-1 text-slate-200">{{ item.keterangan || '-' }}</span>
-          </div>
-          <div>
-            <span class="text-slate-500">Tim:</span>
-            <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        v-if="sortedItems.length === 0"
-        class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400 sm:col-span-2 lg:col-span-3"
-      >
+    <div class="mt-6 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div v-if="sortedItems.length === 0" class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400">
         Belum ada kegiatan yang tersimpan.
       </div>
-    </div>
 
+      <div v-else class="grid gap-4 pb-2 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="item in sortedItems"
+          :key="item.id"
+          class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
+        >
+          <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-200">
+              <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
+              {{ item.status || 'BELUM DIKERJAKAN' }}
+            </span>
+            <span class="text-xs text-slate-500">{{ formatDate(item.tanggal_gangguan) }}</span>
+          </div>
+
+          <h3 class="mt-4 text-base font-semibold text-white">
+            {{ item.jenis_gangguan || 'Tanpa judul' }}
+          </h3>
+          <p class="mt-1 text-sm text-slate-400">
+            {{ item.lokasi_opd || 'Lokasi belum diisi' }}
+          </p>
+
+          <div class="mt-4 grid gap-2 text-xs text-slate-400">
+            <div>
+              <span class="text-slate-500">Keterangan:</span>
+              <span class="ml-1 text-slate-200">{{ item.keterangan || '-' }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500">Tim:</span>
+              <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
