@@ -1,6 +1,6 @@
 <template>
-  <section class="grid min-h-0 h-full gap-6 lg:grid-cols-[260px_1fr]">
-    <aside class="flex min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 sm:p-4 lg:h-full">
+  <section class="flex h-full min-h-0 flex-col gap-4 lg:grid lg:grid-cols-[260px_1fr] lg:gap-6">
+    <aside class="hidden min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 sm:p-4 lg:flex lg:h-full">
       <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-lg font-semibold text-emerald-200">
           {{ initials }}
@@ -37,6 +37,55 @@
         </button>
       </div>
     </aside>
+
+    <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-3 lg:hidden">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-base font-semibold text-emerald-200">
+            {{ initials }}
+          </div>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-white">{{ user?.name || 'User' }}</p>
+            <p class="text-xs text-slate-400">{{ roleLabel }}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          class="rounded-xl border border-slate-700 px-3 py-2 text-xs text-slate-200 hover:border-slate-500"
+          @click="showMobileMenu = !showMobileMenu"
+        >
+          {{ showMobileMenu ? 'Tutup' : 'Menu' }}
+        </button>
+      </div>
+
+      <div v-if="showMobileMenu" class="mt-3 border-t border-slate-800 pt-3">
+        <nav class="grid grid-cols-2 gap-2">
+          <button
+            v-for="item in visibleMenu"
+            :key="item.key"
+            class="flex items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-medium transition"
+            :class="
+              active === item.key
+                ? 'bg-emerald-500/15 text-emerald-200 border border-emerald-400/40'
+                : 'border border-transparent text-slate-300 hover:border-slate-700'
+            "
+            @click="active = item.key; showMobileMenu = false"
+          >
+            {{ item.label }}
+            <span class="text-xs text-slate-500">></span>
+          </button>
+        </nav>
+
+        <div class="mt-3">
+          <button
+            class="w-full rounded-xl border border-rose-500/40 px-3 py-2 text-sm font-semibold text-rose-200 hover:border-rose-400"
+            @click="emit('logout')"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="min-w-0 flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
       <div class="min-h-0 flex-1 overflow-hidden pr-1">
@@ -91,6 +140,7 @@ const menu = [
 const active = ref('kegiatan');
 const refreshKey = ref(0);
 const editingItem = ref(null);
+const showMobileMenu = ref(false);
 
 const isSuperadmin = computed(() => props.user?.role === 'superadmin');
 const canManageKegiatan = computed(() => props.user?.role !== 'user');

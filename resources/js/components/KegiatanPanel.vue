@@ -1,16 +1,16 @@
 <template>
-  <div class="flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
-    <div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-950/40 p-3 sm:p-5">
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div>
-        <h2 class="text-lg font-semibold text-white">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
-        <p class="mt-1 text-sm text-slate-400">
+        <h2 class="text-base font-semibold text-white sm:text-lg">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
+        <p class="mt-1 text-xs text-slate-400 sm:text-sm">
           {{ canManage ? 'Kelola laporan gangguan jaringan.' : 'Lihat kegiatan yang ditugaskan kepada Anda.' }}
         </p>
       </div>
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <button
           type="button"
-          class="w-full rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 sm:w-auto"
+          class="w-full rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:border-slate-500 sm:w-auto sm:py-1"
           @click="load"
         >
           Refresh
@@ -18,7 +18,7 @@
         <button
           v-if="canManage"
           type="button"
-          class="w-full rounded-lg bg-emerald-500 px-3 py-1 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto"
+          class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto sm:py-1"
           @click="emit('create')"
         >
           Buat Kegiatan
@@ -30,8 +30,8 @@
       {{ error }}
     </div>
 
-    <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex w-full flex-wrap gap-2 sm:w-auto">
+    <div class="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+      <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
         <input
           v-model="search"
           placeholder="Cari lokasi, jenis, kendala, tim, keterangan..."
@@ -45,7 +45,7 @@
           <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
         </select>
       </div>
-      <p class="text-xs text-slate-400">Total: {{ filteredItems.length }}</p>
+      <p class="text-xs text-slate-400 sm:text-right">Total: {{ filteredItems.length }}</p>
     </div>
 
     <div v-if="loading" class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
@@ -55,17 +55,17 @@
     <div class="mt-4 min-h-0 flex-1 overflow-hidden">
       <div
         v-if="filteredItems.length === 0"
-        class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400"
+        class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-4 text-center text-sm text-slate-400 sm:p-6"
       >
         Belum ada laporan.
       </div>
 
       <div v-else class="h-full overflow-y-auto pr-1">
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div class="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <div
             v-for="(item, index) in filteredItems"
             :key="item.id"
-            class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
+            class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700 sm:p-5"
           >
             <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
             <div class="flex items-center justify-between gap-2">
@@ -73,17 +73,17 @@
                 <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
                 {{ item.status || 'BELUM DIKERJAKAN' }}
               </span>
-              <span class="text-xs text-slate-500">No {{ index + 1 }}</span>
+              <span class="text-xs text-slate-500 sm:text-xs">No {{ index + 1 }}</span>
             </div>
 
-            <h3 class="mt-4 text-base font-semibold text-white">
+            <h3 class="mt-4 text-sm font-semibold text-white sm:text-base">
               {{ item.jenis_gangguan || 'Tanpa judul' }}
             </h3>
-            <p class="mt-1 text-sm text-slate-400">
+            <p class="mt-1 text-xs text-slate-400 sm:text-sm">
               {{ item.lokasi_opd || '-' }}
             </p>
 
-            <div class="mt-4 grid gap-2 text-xs text-slate-400">
+            <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
               <div>
                 <span class="text-slate-500">Kendala:</span>
                 <span class="ml-1 text-slate-200">{{ item.kendala || '-' }}</span>
@@ -94,7 +94,7 @@
               </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap gap-2">
+            <div class="mt-3 flex flex-wrap gap-2 sm:mt-4">
               <button
                 type="button"
                 class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
