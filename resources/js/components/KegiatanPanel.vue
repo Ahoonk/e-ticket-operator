@@ -493,104 +493,107 @@ const normalizeText = (value) => {
 };
 
 const statusBadgeColor = (status) => {
-  const value = (status || '').toUpperCase();
-  if (value === 'SELESAI') return { fill: [16, 185, 129], text: [3, 7, 18] };
-  if (value === 'PROSES') return { fill: [245, 158, 11], text: [3, 7, 18] };
-  return { fill: [248, 113, 113], text: [3, 7, 18] };
+  return { fill: [255, 255, 255], text: [0, 0, 0] };
 };
 
 const drawPdfPage = (doc, item, pageNumber, totalPages) => {
   const pageWidth = 210;
   const pageHeight = 297;
-  const margin = 14;
+  const margin = 10;
   const contentWidth = pageWidth - margin * 2;
-  const columnGap = 6;
+  const columnGap = 4;
   const columnWidth = (contentWidth - columnGap) / 2;
   const leftX = margin;
   const rightX = margin + columnWidth + columnGap;
 
-  const titleColor = [15, 23, 42];
-  const labelColor = [100, 116, 139];
-  const bodyColor = [15, 23, 42];
-  const borderColor = [203, 213, 225];
+  const titleColor = [0, 0, 0];
+  const labelColor = [0, 0, 0];
+  const bodyColor = [0, 0, 0];
+  const borderColor = [0, 0, 0];
 
   const drawBox = (x, y, w, label, value, minLines = 1) => {
-    const padding = 4;
+    const padding = 3;
     const labelH = 5;
-    const fontSize = 9;
-    const lineHeight = 4;
+    const fontSize = 12;
+    const lineHeight = 4.5;
+    doc.setFont('times', 'normal');
     doc.setFontSize(fontSize);
     const lines = doc.splitTextToSize(normalizeText(value), w - padding * 2);
     const actualLines = Math.max(lines.length, minLines);
-    const boxH = labelH + 6 + actualLines * lineHeight + 4;
+    const boxH = labelH + 5 + actualLines * lineHeight + 4;
 
     doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.25);
+    doc.setLineWidth(0.4);
     doc.roundedRect(x, y, w, boxH, 3, 3);
 
     doc.setTextColor(...labelColor);
-    doc.setFontSize(8);
-    doc.text(label, x + padding, y + 6);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(12);
+    doc.text(label, x + padding, y + 5.5);
 
     doc.setTextColor(...bodyColor);
-    doc.setFontSize(fontSize);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(12);
     doc.text(lines, x + padding, y + 12);
 
     return boxH;
   };
 
-  doc.setFillColor(8, 15, 32);
+  doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
   doc.setFillColor(255, 255, 255);
   doc.roundedRect(margin, margin, contentWidth, 32, 4, 4, 'F');
   doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.4);
   doc.roundedRect(margin, margin, contentWidth, 32, 4, 4);
 
   doc.setTextColor(...titleColor);
-  doc.setFontSize(16);
-  doc.setFont(undefined, 'bold');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(12);
   doc.text('Laporan Kegiatan Jaringan', margin + 6, margin + 10);
 
-  doc.setFontSize(9);
-  doc.setFont(undefined, 'normal');
+  doc.setFont('times', 'normal');
+  doc.setFontSize(12);
   doc.setTextColor(...labelColor);
-  doc.text(`No. ${pageNumber} dari ${totalPages}`, margin + 6, margin + 18);
+  doc.text(`No. ${pageNumber} dari ${totalPages}`, margin + 6, margin + 17);
   doc.text(`Tanggal: ${normalizeText(item.tanggal_gangguan)}`, margin + 6, margin + 24);
 
   const badge = statusBadgeColor(item.status);
   const badgeLabel = item.status || 'BELUM DIKERJAKAN';
-  const badgeWidth = Math.max(28, doc.getTextWidth(badgeLabel) + 14);
-  const badgeX = pageWidth - margin - badgeWidth - 6;
+  const badgeWidth = Math.max(34, doc.getTextWidth(badgeLabel) + 16);
+  const badgeX = pageWidth - margin - badgeWidth - 4;
   const badgeY = margin + 9;
   doc.setFillColor(...badge.fill);
+  doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.4);
   doc.roundedRect(badgeX, badgeY, badgeWidth, 10, 5, 5, 'F');
   doc.setTextColor(...badge.text);
-  doc.setFontSize(8.5);
-  doc.setFont(undefined, 'bold');
-  doc.text(badgeLabel, badgeX + 7, badgeY + 6.5);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(12);
+  doc.text(badgeLabel, badgeX + 8, badgeY + 7);
 
-  let y = margin + 40;
+  let y = margin + 38;
   const row1 = Math.max(
     drawBox(leftX, y, columnWidth, 'Jenis Gangguan', item.jenis_gangguan, 2),
     drawBox(rightX, y, columnWidth, 'Lokasi/OPD', item.lokasi_opd, 2),
   );
-  y += row1 + 6;
+  y += row1 + 4;
 
   const row2 = Math.max(
     drawBox(leftX, y, columnWidth, 'Mulai Pengerjaan', item.mulai_pengerjaan, 1),
     drawBox(rightX, y, columnWidth, 'Selesai Pengerjaan', item.selesai_pengerjaan, 1),
   );
-  y += row2 + 6;
+  y += row2 + 4;
 
-  y += drawBox(margin, y, contentWidth, 'Kendala', item.kendala, 2) + 4;
-  y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 4;
-  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', item.tim_bertugas, 2) + 4;
+  y += drawBox(margin, y, contentWidth, 'Kendala', item.kendala, 2) + 3;
+  y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 3;
+  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', item.tim_bertugas, 2) + 3;
   drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2);
 
   doc.setTextColor(...labelColor);
-  doc.setFontSize(8);
-  doc.setFont(undefined, 'normal');
+  doc.setFont('times', 'normal');
+  doc.setFontSize(12);
   doc.text(`Dicetak pada ${new Date().toLocaleString('id-ID')}`, margin, pageHeight - 10);
 };
 
