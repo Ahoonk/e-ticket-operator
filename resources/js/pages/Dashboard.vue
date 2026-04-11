@@ -97,16 +97,19 @@
           @create="openCreate"
           @edit="openEdit"
         />
-        <KegiatanForm
-          v-else-if="active === 'kegiatan-form'"
-          :initial-data="editingItem"
-          @saved="handleSaved"
-          @cancel="handleCancel"
-        />
-        <AnggotaPanel v-else-if="active === 'anggota'" />
-        <OpdPanel v-else-if="active === 'opd'" />
-        <UserPanel v-else-if="active === 'user' && isSuperadmin" />
-        <PlaceholderPanel v-else />
+
+        <div v-else class="h-full min-h-0 overflow-y-auto pr-1">
+          <KegiatanForm
+            v-if="active === 'kegiatan-form'"
+            :initial-data="editingItem"
+            @saved="handleSaved"
+            @cancel="handleCancel"
+          />
+          <AnggotaPanel v-else-if="active === 'anggota'" />
+          <OpdPanel v-else-if="active === 'opd'" />
+          <UserPanel v-else-if="active === 'user' && isSuperadmin" />
+          <PlaceholderPanel v-else />
+        </div>
       </div>
     </div>
   </section>
