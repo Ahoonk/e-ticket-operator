@@ -10,6 +10,13 @@
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <button
           type="button"
+          class="w-full rounded-lg border border-sky-500/40 px-3 py-2 text-sm text-sky-200 hover:border-sky-400 sm:w-auto sm:py-1"
+          @click="openExportModal"
+        >
+          Export PDF
+        </button>
+        <button
+          type="button"
           class="w-full rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:border-slate-500 sm:w-auto sm:py-1"
           @click="load"
         >
@@ -85,8 +92,8 @@
 
             <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
               <div>
-                <span class="text-slate-500">Kendala:</span>
-                <span class="ml-1 text-slate-200">{{ item.kendala || '-' }}</span>
+                <span class="text-slate-500">Keterangan:</span>
+                <span class="ml-1 text-slate-200">{{ item.keterangan || '-' }}</span>
               </div>
               <div>
                 <span class="text-slate-500">Tim:</span>
@@ -151,62 +158,128 @@
 
     <teleport to="body">
       <div
+        v-if="showExportModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4"
+        @click.self="closeExportModal"
+      >
+        <div class="w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Export PDF Kegiatan</h3>
+              <p class="mt-1 text-sm text-slate-400">
+                Pilih status kegiatan yang akan diekspor. Setiap kegiatan akan menjadi 1 halaman A4.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+              @click="closeExportModal"
+            >
+              Tutup
+            </button>
+          </div>
+
+          <div v-if="exportError" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+            {{ exportError }}
+          </div>
+
+          <div class="mt-5 grid gap-4">
+            <label class="grid gap-2 text-sm text-slate-300">
+              Status yang diekspor
+              <select v-model="exportStatusChoice" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2">
+                <option v-for="option in exportOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-sm text-slate-300">
+              <p class="font-medium text-white">Keterangan</p>
+              <ul class="mt-2 grid gap-1 text-xs text-slate-400">
+                <li>- <span class="text-slate-200">Belum Dikerjakan</span> = status belum dikerjakan</li>
+                <li>- <span class="text-slate-200">Proses</span> = status proses</li>
+                <li>- <span class="text-slate-200">Selesai</span> = status selesai</li>
+                <li>- <span class="text-slate-200">Export Semua</span> = semua data yang tampil di akun ini</li>
+              </ul>
+            </div>
+
+            <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+              <button
+                type="button"
+                class="w-full rounded-lg bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 sm:w-auto"
+                @click="confirmExport"
+              >
+                {{ exportLoading ? 'Mengekspor...' : 'Export PDF' }}
+              </button>
+              <button
+                type="button"
+                class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+                @click="closeExportModal"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div
         v-if="showCompleteModal"
         class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4"
         @click.self="closeComplete"
       >
         <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h3 class="text-lg font-semibold text-white">Selesaikan Kegiatan</h3>
-            <p class="mt-1 text-sm text-slate-400">
-              Isi kendala, tindak lanjut/solusi, dan keterangan sebelum status diubah menjadi selesai.
-            </p>
-          </div>
-          <button
-            type="button"
-            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
-            @click="closeComplete"
-          >
-            Tutup
-          </button>
-        </div>
-
-        <div v-if="completeError" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
-          {{ completeError }}
-        </div>
-
-        <form class="mt-5 grid gap-4" @submit.prevent="submitComplete">
-          <label class="grid gap-2 text-sm text-slate-300">
-            Kendala
-            <textarea v-model="completeForm.kendala" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-          </label>
-          <label class="grid gap-2 text-sm text-slate-300">
-            Tindak Lanjut/Solusi
-            <textarea v-model="completeForm.tindak_lanjut" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-          </label>
-          <label class="grid gap-2 text-sm text-slate-300">
-            Keterangan
-            <textarea v-model="completeForm.keterangan" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
-          </label>
-
-          <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
-            <button
-              type="submit"
-              class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
-            >
-              {{ completeLoading ? 'Menyimpan...' : 'Submit & Selesai' }}
-            </button>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Selesaikan Kegiatan</h3>
+              <p class="mt-1 text-sm text-slate-400">
+                Isi kendala, tindak lanjut/solusi, dan keterangan sebelum status diubah menjadi selesai.
+              </p>
+            </div>
             <button
               type="button"
-              class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+              class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
               @click="closeComplete"
             >
-              Batal
+              Tutup
             </button>
           </div>
-        </form>
-      </div>
+
+          <div v-if="completeError" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+            {{ completeError }}
+          </div>
+
+          <form class="mt-5 grid gap-4" @submit.prevent="submitComplete">
+            <label class="grid gap-2 text-sm text-slate-300">
+              Kendala
+              <textarea v-model="completeForm.kendala" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+            </label>
+            <label class="grid gap-2 text-sm text-slate-300">
+              Tindak Lanjut/Solusi
+              <textarea v-model="completeForm.tindak_lanjut" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+            </label>
+            <label class="grid gap-2 text-sm text-slate-300">
+              Keterangan
+              <textarea v-model="completeForm.keterangan" class="min-h-24 rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
+            </label>
+
+            <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+              <button
+                type="submit"
+                class="w-full rounded-lg bg-emerald-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-emerald-400 sm:w-auto"
+              >
+                {{ completeLoading ? 'Menyimpan...' : 'Submit & Selesai' }}
+              </button>
+              <button
+                type="button"
+                class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+                @click="closeComplete"
+              >
+                Batal
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <div
@@ -215,74 +288,74 @@
         @click.self="closeView"
       >
         <div class="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h3 class="text-lg font-semibold text-white">Detail Kegiatan</h3>
-            <p class="mt-1 text-sm text-slate-400">
-              Informasi lengkap kegiatan yang sudah diinput.
-            </p>
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Detail Kegiatan</h3>
+              <p class="mt-1 text-sm text-slate-400">
+                Informasi lengkap kegiatan yang sudah diinput.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+              @click="closeView"
+            >
+              Tutup
+            </button>
           </div>
-          <button
-            type="button"
-            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
-            @click="closeView"
-          >
-            Tutup
-          </button>
-        </div>
 
-        <div v-if="viewItem" class="mt-5 grid gap-4 sm:grid-cols-2">
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:col-span-2">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
-            <div class="mt-2 flex items-center justify-between gap-3">
-              <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200">
-                <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(viewItem.status)"></span>
-                {{ viewItem.status || 'BELUM DIKERJAKAN' }}
-              </span>
-              <span class="text-sm text-slate-400">{{ formatDate(viewItem.tanggal_gangguan) }}</span>
+          <div v-if="viewItem" class="mt-5 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:col-span-2">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
+              <div class="mt-2 flex items-center justify-between gap-3">
+                <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200">
+                  <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(viewItem.status)"></span>
+                  {{ viewItem.status || 'BELUM DIKERJAKAN' }}
+                </span>
+                <span class="text-sm text-slate-400">{{ formatDate(viewItem.tanggal_gangguan) }}</span>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Jenis Gangguan</p>
+              <p class="mt-2 text-sm text-white">{{ viewItem.jenis_gangguan || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Lokasi/OPD</p>
+              <p class="mt-2 text-sm text-white">{{ viewItem.lokasi_opd || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mulai Pengerjaan</p>
+              <p class="mt-2 text-sm text-white">{{ viewItem.mulai_pengerjaan || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Selesai Pengerjaan</p>
+              <p class="mt-2 text-sm text-white">{{ viewItem.selesai_pengerjaan || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Kendala</p>
+              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.kendala || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tindak Lanjut/Solusi</p>
+              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tindak_lanjut || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tim Bertugas</p>
+              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tim_bertugas || '-' }}</p>
+            </div>
+
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Keterangan</p>
+              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.keterangan || '-' }}</p>
             </div>
           </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Jenis Gangguan</p>
-            <p class="mt-2 text-sm text-white">{{ viewItem.jenis_gangguan || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Lokasi/OPD</p>
-            <p class="mt-2 text-sm text-white">{{ viewItem.lokasi_opd || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mulai Pengerjaan</p>
-            <p class="mt-2 text-sm text-white">{{ viewItem.mulai_pengerjaan || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Selesai Pengerjaan</p>
-            <p class="mt-2 text-sm text-white">{{ viewItem.selesai_pengerjaan || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Kendala</p>
-            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.kendala || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tindak Lanjut/Solusi</p>
-            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tindak_lanjut || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tim Bertugas</p>
-            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tim_bertugas || '-' }}</p>
-          </div>
-
-          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Keterangan</p>
-            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.keterangan || '-' }}</p>
-          </div>
-        </div>
         </div>
       </div>
     </teleport>
@@ -317,6 +390,16 @@ const error = ref(null);
 const statusOptions = ['BELUM DIKERJAKAN', 'PROSES', 'SELESAI'];
 const search = ref('');
 const statusFilter = ref('all');
+const showExportModal = ref(false);
+const exportLoading = ref(false);
+const exportError = ref(null);
+const exportStatusChoice = ref('all');
+const exportOptions = [
+  { value: 'all', label: 'Export Semua' },
+  { value: 'BELUM DIKERJAKAN', label: 'Belum Dikerjakan' },
+  { value: 'PROSES', label: 'Proses' },
+  { value: 'SELESAI', label: 'Selesai' },
+];
 const showViewModal = ref(false);
 const viewItem = ref(null);
 const showCompleteModal = ref(false);
@@ -379,6 +462,166 @@ const remove = async (id) => {
     await load();
   } catch (err) {
     error.value = getErrorMessage(err, 'Gagal menghapus kegiatan.');
+  }
+};
+
+const openExportModal = () => {
+  exportError.value = null;
+  exportStatusChoice.value = 'all';
+  showExportModal.value = true;
+};
+
+const closeExportModal = () => {
+  showExportModal.value = false;
+  exportLoading.value = false;
+  exportError.value = null;
+  exportStatusChoice.value = 'all';
+};
+
+const exportItems = computed(() => {
+  if (exportStatusChoice.value === 'all') {
+    return [...items.value];
+  }
+
+  return items.value.filter((item) => (item.status || '').toUpperCase() === exportStatusChoice.value);
+});
+
+const normalizeText = (value) => {
+  if (value === null || value === undefined || value === '') return '-';
+  if (Array.isArray(value)) return value.join(', ');
+  return String(value);
+};
+
+const statusBadgeColor = (status) => {
+  const value = (status || '').toUpperCase();
+  if (value === 'SELESAI') return { fill: [16, 185, 129], text: [3, 7, 18] };
+  if (value === 'PROSES') return { fill: [245, 158, 11], text: [3, 7, 18] };
+  return { fill: [248, 113, 113], text: [3, 7, 18] };
+};
+
+const drawPdfPage = (doc, item, pageNumber, totalPages) => {
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 14;
+  const contentWidth = pageWidth - margin * 2;
+  const columnGap = 6;
+  const columnWidth = (contentWidth - columnGap) / 2;
+  const leftX = margin;
+  const rightX = margin + columnWidth + columnGap;
+
+  const titleColor = [15, 23, 42];
+  const labelColor = [100, 116, 139];
+  const bodyColor = [15, 23, 42];
+  const borderColor = [203, 213, 225];
+
+  const drawBox = (x, y, w, label, value, minLines = 1) => {
+    const padding = 4;
+    const labelH = 5;
+    const fontSize = 9;
+    const lineHeight = 4;
+    doc.setFontSize(fontSize);
+    const lines = doc.splitTextToSize(normalizeText(value), w - padding * 2);
+    const actualLines = Math.max(lines.length, minLines);
+    const boxH = labelH + 6 + actualLines * lineHeight + 4;
+
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(x, y, w, boxH, 3, 3);
+
+    doc.setTextColor(...labelColor);
+    doc.setFontSize(8);
+    doc.text(label, x + padding, y + 6);
+
+    doc.setTextColor(...bodyColor);
+    doc.setFontSize(fontSize);
+    doc.text(lines, x + padding, y + 12);
+
+    return boxH;
+  };
+
+  doc.setFillColor(8, 15, 32);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(margin, margin, contentWidth, 32, 4, 4, 'F');
+  doc.setDrawColor(...borderColor);
+  doc.roundedRect(margin, margin, contentWidth, 32, 4, 4);
+
+  doc.setTextColor(...titleColor);
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('Laporan Kegiatan Jaringan', margin + 6, margin + 10);
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(...labelColor);
+  doc.text(`No. ${pageNumber} dari ${totalPages}`, margin + 6, margin + 18);
+  doc.text(`Tanggal: ${normalizeText(item.tanggal_gangguan)}`, margin + 6, margin + 24);
+
+  const badge = statusBadgeColor(item.status);
+  const badgeLabel = item.status || 'BELUM DIKERJAKAN';
+  const badgeWidth = Math.max(28, doc.getTextWidth(badgeLabel) + 14);
+  const badgeX = pageWidth - margin - badgeWidth - 6;
+  const badgeY = margin + 9;
+  doc.setFillColor(...badge.fill);
+  doc.roundedRect(badgeX, badgeY, badgeWidth, 10, 5, 5, 'F');
+  doc.setTextColor(...badge.text);
+  doc.setFontSize(8.5);
+  doc.setFont(undefined, 'bold');
+  doc.text(badgeLabel, badgeX + 7, badgeY + 6.5);
+
+  let y = margin + 40;
+  const row1 = Math.max(
+    drawBox(leftX, y, columnWidth, 'Jenis Gangguan', item.jenis_gangguan, 2),
+    drawBox(rightX, y, columnWidth, 'Lokasi/OPD', item.lokasi_opd, 2),
+  );
+  y += row1 + 6;
+
+  const row2 = Math.max(
+    drawBox(leftX, y, columnWidth, 'Mulai Pengerjaan', item.mulai_pengerjaan, 1),
+    drawBox(rightX, y, columnWidth, 'Selesai Pengerjaan', item.selesai_pengerjaan, 1),
+  );
+  y += row2 + 6;
+
+  y += drawBox(margin, y, contentWidth, 'Kendala', item.kendala, 2) + 4;
+  y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 4;
+  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', item.tim_bertugas, 2) + 4;
+  drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2);
+
+  doc.setTextColor(...labelColor);
+  doc.setFontSize(8);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Dicetak pada ${new Date().toLocaleString('id-ID')}`, margin, pageHeight - 10);
+};
+
+const confirmExport = async () => {
+  exportLoading.value = true;
+  exportError.value = null;
+
+  try {
+    const rows = exportItems.value;
+    if (!rows.length) {
+      exportError.value = 'Tidak ada data kegiatan untuk status yang dipilih.';
+      return;
+    }
+
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    rows.forEach((item, index) => {
+      if (index > 0) {
+        doc.addPage();
+      }
+      drawPdfPage(doc, item, index + 1, rows.length);
+    });
+
+    const suffix = exportStatusChoice.value === 'all' ? 'semua' : exportStatusChoice.value.toLowerCase().replace(/\s+/g, '-');
+    doc.save(`kegiatan-${suffix}.pdf`);
+    closeExportModal();
+  } catch (err) {
+    exportError.value = getErrorMessage(err, 'Gagal mengekspor PDF.');
+  } finally {
+    exportLoading.value = false;
   }
 };
 
