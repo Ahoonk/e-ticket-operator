@@ -101,13 +101,16 @@
         <div class="relative" ref="dropdownRef">
           <button
             type="button"
-            class="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-left text-sm text-slate-100"
+            class="flex w-full items-center justify-between rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-left text-sm text-slate-100 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="isTimLocked"
             @click="toggleDropdown"
           >
             <span v-if="form.tim_bertugas.length" class="truncate">
               {{ form.tim_bertugas.join(', ') }}
             </span>
-            <span v-else class="text-slate-500">Pilih anggota</span>
+            <span v-else class="text-slate-500">
+              {{ isTimLocked ? 'Tim terkunci saat status belum dikerjakan' : 'Pilih anggota' }}
+            </span>
             <span class="text-slate-500">v</span>
           </button>
           <div
@@ -116,14 +119,15 @@
           >
             <div v-if="anggotaLoading" class="px-2 py-1 text-slate-400">Memuat anggota...</div>
             <div v-else-if="anggotaOptions.length === 0" class="px-2 py-1 text-slate-400">Belum ada anggota.</div>
-            <label
+              <label
               v-for="anggota in anggotaOptions"
               :key="anggota.id"
-              class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-800/60"
+              class="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-slate-800/60"
             >
               <input
                 type="checkbox"
                 class="h-4 w-4 rounded border-slate-600 bg-slate-900/60"
+                :disabled="isTimLocked"
                 :checked="isSelected(anggota.nama)"
                 @change="toggleSelection(anggota.nama)"
               />
@@ -206,6 +210,7 @@ const form = ref({
 });
 
 const isEditing = computed(() => Boolean(props.initialData && props.initialData.id));
+const isTimLocked = computed(() => form.value.status === 'BELUM DIKERJAKAN');
 
 const hydrateForm = (item) => {
   const timBertugas = item?.tim_bertugas
@@ -256,6 +261,7 @@ const loadOpd = async () => {
 };
 
 const toggleDropdown = () => {
+  if (isTimLocked.value) return;
   anggotaOpen.value = !anggotaOpen.value;
 };
 
@@ -283,6 +289,7 @@ const filteredOpdOptions = computed(() => {
 const isSelected = (name) => form.value.tim_bertugas.includes(name);
 
 const toggleSelection = (name) => {
+  if (isTimLocked.value) return;
   const current = [...form.value.tim_bertugas];
   const index = current.indexOf(name);
   if (index >= 0) {
@@ -316,6 +323,15 @@ const statusDotStyle = computed(() => {
     paddingLeft: '2rem',
   };
 });
+
+watch(
+  () => form.value.status,
+  (status) => {
+    if (status === 'BELUM DIKERJAKAN') {
+      anggotaOpen.value = false;
+    }
+  }
+);
 
 const submit = async () => {
   error.value = null;
