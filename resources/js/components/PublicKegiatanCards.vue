@@ -48,8 +48,8 @@
 
         <div class="mt-4 grid gap-2 text-xs text-slate-400">
           <div>
-            <span class="text-slate-500">Kendala:</span>
-            <span class="ml-1 text-slate-200">{{ item.kendala || '-' }}</span>
+            <span class="text-slate-500">Keterangan:</span>
+            <span class="ml-1 text-slate-200">{{ item.keterangan || '-' }}</span>
           </div>
           <div>
             <span class="text-slate-500">Tim:</span>
