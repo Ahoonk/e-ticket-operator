@@ -39,14 +39,7 @@
     </aside>
 
     <div class="min-w-0 flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
-      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
-        <div>
-          <h2 class="text-xl font-semibold text-white">{{ activeLabel }}</h2>
-          <p class="text-sm text-slate-400">Kelola data pada menu ini.</p>
-        </div>
-      </div>
-
-      <div class="mt-6 min-h-0 flex-1 overflow-hidden pr-1">
+      <div class="min-h-0 flex-1 overflow-hidden pr-1">
         <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"

@@ -149,12 +149,13 @@
       </div>
     </div>
 
-    <div
-      v-if="showCompleteModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
-      @click.self="closeComplete"
-    >
-      <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+    <teleport to="body">
+      <div
+        v-if="showCompleteModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4"
+        @click.self="closeComplete"
+      >
+        <div class="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
         <div class="flex items-start justify-between gap-3">
           <div>
             <h3 class="text-lg font-semibold text-white">Selesaikan Kegiatan</h3>
@@ -206,14 +207,14 @@
           </div>
         </form>
       </div>
-    </div>
+      </div>
 
-    <div
-      v-if="showViewModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
-      @click.self="closeView"
-    >
-      <div class="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+      <div
+        v-if="showViewModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4"
+        @click.self="closeView"
+      >
+        <div class="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
         <div class="flex items-start justify-between gap-3">
           <div>
             <h3 class="text-lg font-semibold text-white">Detail Kegiatan</h3>
@@ -282,8 +283,9 @@
             <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.keterangan || '-' }}</p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </teleport>
   </div>
 </template>
 
