@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <div class="mt-6 min-h-0 flex-1 overflow-y-auto pr-1">
+      <div class="mt-6 min-h-0 flex-1 overflow-hidden pr-1">
         <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"

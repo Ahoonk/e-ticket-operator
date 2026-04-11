@@ -1,5 +1,5 @@
 <template>
-  <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
+  <div class="flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-950/40 p-5">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 class="text-lg font-semibold text-white">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
@@ -52,81 +52,99 @@
       Memuat data...
     </div>
 
-    <div
-      v-else-if="filteredItems.length === 0"
-      class="mt-4 rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400"
-    >
-      Belum ada laporan.
-    </div>
-
-    <div v-else class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-4 min-h-0 flex-1 overflow-hidden">
       <div
-        v-for="(item, index) in filteredItems"
-        :key="item.id"
-        class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
+        v-if="filteredItems.length === 0"
+        class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400"
       >
-        <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-200">
-            <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
-            {{ item.status || 'BELUM DIKERJAKAN' }}
-          </span>
-          <span class="text-xs text-slate-500">No {{ index + 1 }}</span>
-        </div>
+        Belum ada laporan.
+      </div>
 
-        <h3 class="mt-4 text-base font-semibold text-white">
-          {{ item.jenis_gangguan || 'Tanpa judul' }}
-        </h3>
-        <p class="mt-1 text-sm text-slate-400">
-          {{ item.lokasi_opd || '-' }}
-        </p>
+      <div v-else class="h-full overflow-y-auto pr-1">
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div
+            v-for="(item, index) in filteredItems"
+            :key="item.id"
+            class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
+          >
+            <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-[11px] text-slate-200">
+                <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
+                {{ item.status || 'BELUM DIKERJAKAN' }}
+              </span>
+              <span class="text-xs text-slate-500">No {{ index + 1 }}</span>
+            </div>
 
-        <div class="mt-4 grid gap-2 text-xs text-slate-400">
-          <div>
-            <span class="text-slate-500">Kendala:</span>
-            <span class="ml-1 text-slate-200">{{ item.kendala || '-' }}</span>
+            <h3 class="mt-4 text-base font-semibold text-white">
+              {{ item.jenis_gangguan || 'Tanpa judul' }}
+            </h3>
+            <p class="mt-1 text-sm text-slate-400">
+              {{ item.lokasi_opd || '-' }}
+            </p>
+
+            <div class="mt-4 grid gap-2 text-xs text-slate-400">
+              <div>
+                <span class="text-slate-500">Kendala:</span>
+                <span class="ml-1 text-slate-200">{{ item.kendala || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-500">Tim:</span>
+                <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
+              </div>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
+                @click="openView(item)"
+                aria-label="Lihat"
+                title="Lihat"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M10 4.5c-4.5 0-8 4.5-8 5.5s3.5 5.5 8 5.5 8-4.5 8-5.5-3.5-5.5-8-5.5zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"></path>
+                  <circle cx="10" cy="10" r="2"></circle>
+                </svg>
+              </button>
+
+              <template v-if="canManage">
+                <button
+                  type="button"
+                  class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
+                  @click="emit('edit', item)"
+                  aria-label="Edit"
+                  title="Edit"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"></path>
+                    <path d="M14.7 3.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-1.1 1.1-2.5-2.5 1.1-1.1z"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="rounded-lg border border-rose-500/40 px-2 py-1 text-[10px] text-rose-200 hover:border-rose-400"
+                  @click="remove(item.id)"
+                  aria-label="Hapus"
+                  title="Hapus"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M6 7h8l-1 9H7L6 7z"></path>
+                    <path d="M8 4h4l1 1h3v2H4V5h3l1-1z"></path>
+                  </svg>
+                </button>
+              </template>
+
+              <button
+                v-else-if="canComplete && item.status === 'PROSES'"
+                type="button"
+                class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+                @click="openComplete(item)"
+              >
+                Selesai
+              </button>
+            </div>
           </div>
-          <div>
-            <span class="text-slate-500">Tim:</span>
-            <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
-          </div>
-        </div>
-
-        <div v-if="canManage" class="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            class="rounded-lg border border-slate-700 px-2 py-1 text-[10px] text-slate-200 hover:border-slate-500"
-            @click="emit('edit', item)"
-            aria-label="Edit"
-            title="Edit"
-          >
-            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"></path>
-              <path d="M14.7 3.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-1.1 1.1-2.5-2.5 1.1-1.1z"></path>
-            </svg>
-          </button>
-          <button
-            type="button"
-            class="rounded-lg border border-rose-500/40 px-2 py-1 text-[10px] text-rose-200 hover:border-rose-400"
-            @click="remove(item.id)"
-            aria-label="Hapus"
-            title="Hapus"
-          >
-            <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M6 7h8l-1 9H7L6 7z"></path>
-              <path d="M8 4h4l1 1h3v2H4V5h3l1-1z"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div v-else-if="canComplete && item.status === 'PROSES'" class="mt-4">
-          <button
-            type="button"
-            class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
-            @click="openComplete(item)"
-          >
-            Selesai
-          </button>
         </div>
       </div>
     </div>
@@ -189,6 +207,83 @@
         </form>
       </div>
     </div>
+
+    <div
+      v-if="showViewModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4"
+      @click.self="closeView"
+    >
+      <div class="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="text-lg font-semibold text-white">Detail Kegiatan</h3>
+            <p class="mt-1 text-sm text-slate-400">
+              Informasi lengkap kegiatan yang sudah diinput.
+            </p>
+          </div>
+          <button
+            type="button"
+            class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+            @click="closeView"
+          >
+            Tutup
+          </button>
+        </div>
+
+        <div v-if="viewItem" class="mt-5 grid gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4 sm:col-span-2">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status</p>
+            <div class="mt-2 flex items-center justify-between gap-3">
+              <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-3 py-1 text-xs text-slate-200">
+                <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(viewItem.status)"></span>
+                {{ viewItem.status || 'BELUM DIKERJAKAN' }}
+              </span>
+              <span class="text-sm text-slate-400">{{ formatDate(viewItem.tanggal_gangguan) }}</span>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Jenis Gangguan</p>
+            <p class="mt-2 text-sm text-white">{{ viewItem.jenis_gangguan || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Lokasi/OPD</p>
+            <p class="mt-2 text-sm text-white">{{ viewItem.lokasi_opd || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mulai Pengerjaan</p>
+            <p class="mt-2 text-sm text-white">{{ viewItem.mulai_pengerjaan || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Selesai Pengerjaan</p>
+            <p class="mt-2 text-sm text-white">{{ viewItem.selesai_pengerjaan || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Kendala</p>
+            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.kendala || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tindak Lanjut/Solusi</p>
+            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tindak_lanjut || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tim Bertugas</p>
+            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tim_bertugas || '-' }}</p>
+          </div>
+
+          <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Keterangan</p>
+            <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.keterangan || '-' }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -220,6 +315,8 @@ const error = ref(null);
 const statusOptions = ['BELUM DIKERJAKAN', 'PROSES', 'SELESAI'];
 const search = ref('');
 const statusFilter = ref('all');
+const showViewModal = ref(false);
+const viewItem = ref(null);
 const showCompleteModal = ref(false);
 const selectedItem = ref(null);
 const completeLoading = ref(false);
@@ -281,6 +378,16 @@ const remove = async (id) => {
   } catch (err) {
     error.value = getErrorMessage(err, 'Gagal menghapus kegiatan.');
   }
+};
+
+const openView = (item) => {
+  viewItem.value = item;
+  showViewModal.value = true;
+};
+
+const closeView = () => {
+  showViewModal.value = false;
+  viewItem.value = null;
 };
 
 const openComplete = (item) => {
