@@ -1,6 +1,6 @@
 <template>
-  <section class="grid gap-6 lg:grid-cols-[260px_1fr]">
-    <aside class="flex min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 sm:p-4 lg:min-h-[520px]">
+  <section class="grid min-h-0 h-full gap-6 lg:grid-cols-[260px_1fr]">
+    <aside class="flex min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/70 p-3 sm:p-4 lg:h-full">
       <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500/20 text-lg font-semibold text-emerald-200">
           {{ initials }}
@@ -38,7 +38,7 @@
       </div>
     </aside>
 
-    <div class="min-w-0 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+    <div class="min-w-0 flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
           <h2 class="text-xl font-semibold text-white">{{ activeLabel }}</h2>
@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <div class="mt-6">
+      <div class="mt-6 min-h-0 flex-1 overflow-y-auto pr-1">
         <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"

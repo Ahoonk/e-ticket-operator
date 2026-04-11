@@ -1,13 +1,13 @@
 <template>
-  <div class="min-h-screen overflow-x-hidden bg-slate-950 text-slate-100 font-['Space Grotesk']">
+  <div class="fixed inset-0 overflow-hidden bg-slate-950 text-slate-100 font-['Space Grotesk']">
     <div class="pointer-events-none absolute inset-0 overflow-hidden">
       <div class="absolute -top-40 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl"></div>
       <div class="absolute bottom-0 right-0 h-72 w-72 translate-x-1/3 translate-y-1/3 rounded-full bg-sky-500/20 blur-3xl"></div>
     </div>
 
     <main
-      class="relative mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12"
-      :class="!user ? 'h-screen overflow-hidden' : 'min-h-screen'"
+      class="relative mx-auto flex h-full w-full max-w-[1400px] flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12"
+      :class="!user ? 'overflow-hidden' : 'overflow-hidden'"
     >
       <header>
         <p class="text-sm uppercase tracking-[0.3em] text-emerald-300/70">Kegiatan Jaringan : LIVE REPORT</p>
@@ -49,7 +49,7 @@
         </div>
       </div>
 
-      <Dashboard v-else :user="user" @logout="logoutUser" />
+      <Dashboard v-else class="min-h-0 flex-1" :user="user" @logout="logoutUser" />
     </main>
   </div>
 </template>
