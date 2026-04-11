@@ -26,7 +26,7 @@
 
     <div v-else class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <div
-        v-for="item in items"
+        v-for="item in sortedItems"
         :key="item.id"
         class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-5 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700"
       >
@@ -59,7 +59,7 @@
       </div>
 
       <div
-        v-if="items.length === 0"
+        v-if="sortedItems.length === 0"
         class="rounded-2xl border border-dashed border-slate-800 bg-slate-950/30 p-6 text-center text-sm text-slate-400 sm:col-span-2 lg:col-span-3"
       >
         Belum ada kegiatan yang tersimpan.
@@ -103,6 +103,27 @@ const load = async () => {
     loading.value = false;
   }
 };
+
+const statusPriority = (status) => {
+  const value = (status || '').toUpperCase();
+  if (value === 'PROSES') return 0;
+  if (value === 'BELUM DIKERJAKAN') return 1;
+  if (value === 'SELESAI') return 2;
+  return 3;
+};
+
+const sortedItems = computed(() => {
+  return [...items.value].sort((a, b) => {
+    const statusDiff = statusPriority(a.status) - statusPriority(b.status);
+    if (statusDiff !== 0) return statusDiff;
+
+    const dateA = a.tanggal_gangguan ? new Date(a.tanggal_gangguan).getTime() : 0;
+    const dateB = b.tanggal_gangguan ? new Date(b.tanggal_gangguan).getTime() : 0;
+    if (dateA !== dateB) return dateB - dateA;
+
+    return (b.id || 0) - (a.id || 0);
+  });
+});
 
 const hasMore = computed(() => {
   if (!meta.value) return false;
