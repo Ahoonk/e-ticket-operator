@@ -437,6 +437,11 @@ const statusDot = (status) => {
   return 'bg-rose-400';
 };
 
+const formatDate = (value) => {
+  if (!value) return '-';
+  return value;
+};
+
 watch(() => props.refreshKey, load);
 
 onMounted(load);
