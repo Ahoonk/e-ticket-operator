@@ -107,7 +107,7 @@
           />
           <AnggotaPanel v-else-if="active === 'anggota'" />
           <OpdPanel v-else-if="active === 'opd'" />
-          <UserPanel v-else-if="active === 'user' && isSuperadmin" />
+          <UserPanel v-else-if="active === 'user'" :current-user="props.user" />
           <PlaceholderPanel v-else />
         </div>
       </div>
@@ -145,7 +145,6 @@ const refreshKey = ref(0);
 const editingItem = ref(null);
 const showMobileMenu = ref(false);
 
-const isSuperadmin = computed(() => props.user?.role === 'superadmin');
 const canManageKegiatan = computed(() => props.user?.role !== 'user');
 
 const visibleMenu = computed(() => {
@@ -154,7 +153,7 @@ const visibleMenu = computed(() => {
   }
 
   if (props.user?.role === 'admin') {
-    return menu.filter((item) => item.key !== 'user');
+    return menu;
   }
 
   if (props.user?.role === 'user') {

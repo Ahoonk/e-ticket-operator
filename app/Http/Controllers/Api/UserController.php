@@ -13,11 +13,23 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    private function allowedRolesFor(User $actor): array
+    {
+        return $actor->role === 'superadmin'
+            ? ['superadmin', 'admin', 'user']
+            : ['admin', 'user'];
+    }
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $actor = $request->user();
+        if (!$actor || !in_array($actor->role, ['superadmin', 'admin'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
         $items = User::query()
             ->with('anggota')
             ->orderByDesc('id')
@@ -41,11 +53,18 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $actor = $request->user();
+        if (!$actor || !in_array($actor->role, ['superadmin', 'admin'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $allowedRoles = $this->allowedRolesFor($actor);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', Rule::in(['superadmin', 'admin', 'user'])],
+            'role' => ['required', Rule::in($allowedRoles)],
             'telepon' => ['nullable', 'string', 'max:50'],
         ]);
 
@@ -87,11 +106,22 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
+        $actor = $request->user();
+        if (!$actor || !in_array($actor->role, ['superadmin', 'admin'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($actor->role === 'admin' && $user->role === 'superadmin') {
+            return response()->json(['message' => 'Admin tidak dapat mengubah akun superadmin.'], 403);
+        }
+
+        $allowedRoles = $this->allowedRolesFor($actor);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', Rule::in(['superadmin', 'admin', 'user'])],
+            'role' => ['required', Rule::in($allowedRoles)],
             'telepon' => ['nullable', 'string', 'max:50'],
         ]);
 
@@ -138,6 +168,15 @@ class UserController extends Controller
      */
     public function destroy(User $user): JsonResponse
     {
+        $actor = request()->user();
+        if (!$actor || !in_array($actor->role, ['superadmin', 'admin'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($actor->role === 'admin' && $user->role === 'superadmin') {
+            return response()->json(['message' => 'Admin tidak dapat menghapus akun superadmin.'], 403);
+        }
+
         if (auth()->id() === $user->id) {
             return response()->json(['message' => 'Tidak bisa menghapus akun sendiri.'], 422);
         }

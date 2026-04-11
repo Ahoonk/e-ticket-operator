@@ -161,12 +161,26 @@ import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
 import { createUser, deleteUser, listUsers, updateUser } from '../services/users';
 
+const props = defineProps({
+  currentUser: {
+    type: Object,
+    default: null,
+  },
+});
+
 const items = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const editingId = ref(null);
 const showModal = ref(false);
-const roles = ['superadmin', 'admin', 'user'];
+
+const roles = computed(() => {
+  if (props.currentUser?.role === 'admin') {
+    return ['admin', 'user'];
+  }
+
+  return ['superadmin', 'admin', 'user'];
+});
 
 const form = ref({
   name: '',
@@ -207,6 +221,11 @@ const openCreate = () => {
 };
 
 const startEdit = (item) => {
+  if (props.currentUser?.role === 'admin' && item.role === 'superadmin') {
+    error.value = 'Admin tidak dapat mengubah akun superadmin.';
+    return;
+  }
+
   editingId.value = item.id;
   form.value = {
     name: item.name,
@@ -226,6 +245,11 @@ const closeModal = () => {
 const submit = async () => {
   error.value = null;
   try {
+    if (props.currentUser?.role === 'admin' && form.value.role === 'superadmin') {
+      error.value = 'Admin hanya dapat membuat akun admin atau user.';
+      return;
+    }
+
     if (editingId.value) {
       await updateUser(editingId.value, { ...form.value });
     } else {
@@ -241,6 +265,12 @@ const submit = async () => {
 const remove = async (id) => {
   if (!confirm('Hapus user ini?')) return;
   try {
+    const target = items.value.find((item) => item.id === id);
+    if (props.currentUser?.role === 'admin' && target?.role === 'superadmin') {
+      error.value = 'Admin tidak dapat menghapus akun superadmin.';
+      return;
+    }
+
     await deleteUser(id);
     await load();
   } catch (err) {

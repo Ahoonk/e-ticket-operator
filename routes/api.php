@@ -18,7 +18,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('kegiatan', KegiatanController::class);
     Route::apiResource('anggota', AnggotaController::class)->except(['show']);
     Route::apiResource('opd', OpdController::class)->except(['show']);
-    Route::apiResource('users', UserController::class)->except(['show'])->middleware('superadmin');
+    Route::apiResource('users', UserController::class)->except(['show']);
     Route::get('/gangguan', [GangguanController::class, 'index']);
     Route::post('/gangguan/{gangguan}/complete', [GangguanController::class, 'complete']);
     Route::apiResource('gangguan', GangguanController::class)->only(['store', 'show', 'update', 'destroy']);
