@@ -7,10 +7,10 @@
 
     <main class="relative mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-8 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12">
       <header>
-        <p class="text-sm uppercase tracking-[0.3em] text-emerald-300/70">Kegiatan Jaringan</p>
-        <h1 class="mt-2 text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">Dashboard Gangguan Jaringan</h1>
+        <p class="text-sm uppercase tracking-[0.3em] text-emerald-300/70">Kegiatan Jaringan : LIVE REPORT</p>
+        <h1 class="mt-2 text-2xl font-semibold text-white sm:text-3xl lg:text-4xl">Kegiatan Tim TA Operator Komputer</h1>
         <p class="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
-          Pantau laporan gangguan secara live.
+          Pantau Pekerjaan Tim Secara Real Time
         </p>
       </header>
 
