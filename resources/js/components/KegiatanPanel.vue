@@ -750,7 +750,7 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
 
   const uploadedDocuments = Array.isArray(documents) ? documents : [];
   if (uploadedDocuments.length > 0) {
-    const galleryStartY = y + 4;
+    const galleryStartY = y + 2;
     const galleryColumns = uploadedDocuments.length > 4 ? 3 : 2;
     const galleryGap = 4;
     const galleryRows = Math.ceil(uploadedDocuments.length / galleryColumns);
@@ -761,18 +761,13 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
     );
     const cellWidth = (contentWidth - (galleryColumns - 1) * galleryGap) / galleryColumns;
 
-    doc.setTextColor(...labelColor);
-    doc.setFont('times', 'bold');
-    doc.setFontSize(10);
-    doc.text('Dokumentasi Foto', margin, galleryStartY);
-
     let loadErrorCount = 0;
     for (let index = 0; index < uploadedDocuments.length; index += 1) {
       const documentItem = uploadedDocuments[index];
       const row = Math.floor(index / galleryColumns);
       const col = index % galleryColumns;
       const cellX = margin + col * (cellWidth + galleryGap);
-      const cellY = galleryStartY + 5 + row * (cellHeight + galleryGap);
+      const cellY = galleryStartY + row * (cellHeight + galleryGap);
       const imagePadding = 0.5;
       const imageBoxHeight = Math.max(18, cellHeight - 1);
       const imageBoxWidth = cellWidth - imagePadding * 2;
