@@ -118,7 +118,17 @@ const statusDot = (status) => {
 
 const formatDate = (value) => {
   if (!value) return '-';
-  return value;
+  const [year, month, day] = String(value).split('-');
+  if (!year || !month || !day) return value;
+
+  const formatted = new Date(Number(year), Number(month) - 1, Number(day));
+  if (Number.isNaN(formatted.getTime())) return value;
+
+  return formatted.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 };
 
 const formatTeamMembers = (value) => {
