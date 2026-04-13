@@ -8,18 +8,41 @@ use Illuminate\Http\Request;
 
 class GangguanController extends Controller
 {
+    private function teamMembers(?string $timBertugas): array
+    {
+        return collect(explode(',', (string) $timBertugas))
+            ->map(fn ($value) => trim($value))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    private function teamMemberMatchesUser(string $teamMember, $user): bool
+    {
+        [$label, $userId] = array_pad(explode('::', $teamMember, 2), 2, null);
+
+        if ($userId !== null && $userId !== '' && (string) $user->id === trim($userId)) {
+            return true;
+        }
+
+        $needle = str_replace(' ', '', trim($user->name));
+
+        return str_replace(' ', '', trim($label)) === $needle;
+    }
+
     private function isAssignedToUser(Gangguan $gangguan, $user): bool
     {
         if (!$user) {
             return false;
         }
 
-        $needle = str_replace(' ', '', trim($user->name));
+        foreach ($this->teamMembers($gangguan->tim_bertugas) as $teamMember) {
+            if ($this->teamMemberMatchesUser($teamMember, $user)) {
+                return true;
+            }
+        }
 
-        return str_contains(
-            ',' . str_replace(' ', '', (string) $gangguan->tim_bertugas) . ',',
-            ',' . $needle . ','
-        );
+        return false;
     }
 
     /**
@@ -32,10 +55,15 @@ class GangguanController extends Controller
         $user = $request->user();
         if ($user && $user->role === 'user') {
             $needle = str_replace(' ', '', trim($user->name));
-            $query->whereRaw(
-                "CONCAT(',', REPLACE(COALESCE(tim_bertugas, ''), ' ', ''), ',') LIKE ?",
-                ['%,'.$needle.',%']
-            );
+            $query->where(function ($subQuery) use ($user, $needle) {
+                $subQuery->whereRaw(
+                    "CONCAT(',', COALESCE(tim_bertugas, ''), ',') LIKE ?",
+                    ['%,::'.$user->id.',%']
+                )->orWhereRaw(
+                    "CONCAT(',', REPLACE(COALESCE(tim_bertugas, ''), ' ', ''), ',') LIKE ?",
+                    ['%,'.$needle.',%']
+                );
+            });
         }
 
         $items = $query->orderByDesc('tanggal_gangguan')

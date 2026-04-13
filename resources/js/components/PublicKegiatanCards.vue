@@ -58,7 +58,7 @@
             </div>
             <div>
               <span class="text-slate-500">Tim:</span>
-              <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
+              <span class="ml-1 text-slate-200">{{ formatTeamMembers(item.tim_bertugas) || '-' }}</span>
             </div>
           </div>
         </div>
@@ -119,6 +119,25 @@ const statusDot = (status) => {
 const formatDate = (value) => {
   if (!value) return '-';
   return value;
+};
+
+const formatTeamMembers = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  return String(value)
+    .split(',')
+    .map((part) => {
+      const token = part.trim();
+      if (!token) return '';
+
+      if (token.includes('::')) {
+        return token.split('::')[0].trim();
+      }
+
+      return token;
+    })
+    .filter(Boolean)
+    .join(', ');
 };
 
 onMounted(load);

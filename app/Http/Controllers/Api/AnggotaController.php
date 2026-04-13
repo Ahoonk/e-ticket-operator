@@ -66,8 +66,13 @@ class AnggotaController extends Controller
             ]);
 
             return [
-                'anggota' => $anggota,
-                'temporary_password' => $temporaryPassword,
+                'anggota' => [
+                    'id' => $anggota->id,
+                    'user_id' => $anggota->user_id,
+                    'nama' => $anggota->nama,
+                    'telepon' => $anggota->telepon,
+                    'email' => $anggota->email,
+                ],
             ];
         });
 

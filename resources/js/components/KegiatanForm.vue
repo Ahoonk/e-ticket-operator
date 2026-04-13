@@ -106,7 +106,7 @@
             @click="toggleDropdown"
           >
             <span v-if="form.tim_bertugas.length" class="truncate">
-              {{ form.tim_bertugas.join(', ') }}
+              {{ form.tim_bertugas.map(formatTeamMember).join(', ') }}
             </span>
             <span v-else class="text-slate-500">
               {{ isTimLocked ? 'Tim terkunci saat status belum dikerjakan' : 'Pilih anggota' }}
@@ -128,8 +128,8 @@
                 type="checkbox"
                 class="h-4 w-4 rounded border-slate-600 bg-slate-900/60"
                 :disabled="isTimLocked"
-                :checked="isSelected(anggota.nama)"
-                @change="toggleSelection(anggota.nama)"
+                :checked="isSelected(anggota)"
+                @change="toggleSelection(anggota)"
               />
               <span>{{ anggota.nama }}</span>
             </label>
@@ -141,7 +141,7 @@
             :key="name"
             class="rounded-full border border-slate-700 px-2 py-0.5 text-xs text-slate-200"
           >
-            {{ name }}
+            {{ formatTeamMember(name) }}
           </span>
         </div>
       </label>
@@ -277,6 +277,19 @@ const selectOpd = (opd) => {
   opdOpen.value = false;
 };
 
+const teamMemberToken = (anggota) => `${anggota.nama}::${anggota.user_id ?? anggota.id}`;
+
+const formatTeamMember = (value) => {
+  const token = String(value || '').trim();
+  if (!token) return '';
+
+  if (token.includes('::')) {
+    return token.split('::')[0].trim();
+  }
+
+  return token;
+};
+
 const filteredOpdOptions = computed(() => {
   const term = opdSearch.value.trim().toLowerCase();
   if (!term) return opdOptions.value;
@@ -286,16 +299,24 @@ const filteredOpdOptions = computed(() => {
   });
 });
 
-const isSelected = (name) => form.value.tim_bertugas.includes(name);
+const isSelected = (anggota) => {
+  const token = teamMemberToken(anggota);
+  return form.value.tim_bertugas.includes(token) || form.value.tim_bertugas.includes(anggota.nama);
+};
 
-const toggleSelection = (name) => {
+const toggleSelection = (anggota) => {
   if (isTimLocked.value) return;
   const current = [...form.value.tim_bertugas];
-  const index = current.indexOf(name);
+  const token = teamMemberToken(anggota);
+  const index = current.indexOf(token);
+  const legacyIndex = current.indexOf(anggota.nama);
+
   if (index >= 0) {
     current.splice(index, 1);
+  } else if (legacyIndex >= 0) {
+    current.splice(legacyIndex, 1);
   } else {
-    current.push(name);
+    current.push(token);
   }
   form.value.tim_bertugas = current;
 };

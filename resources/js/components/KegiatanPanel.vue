@@ -97,7 +97,7 @@
               </div>
               <div>
                 <span class="text-slate-500">Tim:</span>
-                <span class="ml-1 text-slate-200">{{ item.tim_bertugas || '-' }}</span>
+                <span class="ml-1 text-slate-200">{{ formatTeamMembers(item.tim_bertugas) || '-' }}</span>
               </div>
             </div>
 
@@ -348,7 +348,7 @@
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Tim Bertugas</p>
-              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ viewItem.tim_bertugas || '-' }}</p>
+              <p class="mt-2 text-sm text-white whitespace-pre-wrap">{{ formatTeamMembers(viewItem.tim_bertugas) || '-' }}</p>
             </div>
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
@@ -431,7 +431,7 @@ const filteredItems = computed(() => {
       item.selesai_pengerjaan,
       item.kendala,
       item.tindak_lanjut,
-      item.tim_bertugas,
+      formatTeamMembers(item.tim_bertugas),
       item.status,
       item.keterangan,
     ]
@@ -490,6 +490,25 @@ const normalizeText = (value) => {
   if (value === null || value === undefined || value === '') return '-';
   if (Array.isArray(value)) return value.join(', ');
   return String(value);
+};
+
+const formatTeamMembers = (value) => {
+  if (value === null || value === undefined || value === '') return '';
+
+  return String(value)
+    .split(',')
+    .map((part) => {
+      const token = part.trim();
+      if (!token) return '';
+
+      if (token.includes('::')) {
+        return token.split('::')[0].trim();
+      }
+
+      return token;
+    })
+    .filter(Boolean)
+    .join(', ');
 };
 
 const statusBadgeColor = (status) => {
@@ -585,7 +604,7 @@ const drawPdfPage = (doc, item, pageNumber, totalPages) => {
 
   y += drawBox(margin, y, contentWidth, 'Kendala', item.kendala, 2) + 3;
   y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 3;
-  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', item.tim_bertugas, 2) + 3;
+  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', formatTeamMembers(item.tim_bertugas), 2) + 3;
   drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2);
 
   doc.setTextColor(...labelColor);
