@@ -89,6 +89,9 @@
             <p class="mt-1 text-xs text-slate-400 sm:text-sm">
               {{ item.lokasi_opd || '-' }}
             </p>
+            <p class="mt-1 text-[11px] text-slate-500">
+              Tanggal input: <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
+            </p>
 
             <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
               <div>
