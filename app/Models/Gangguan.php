@@ -18,4 +18,9 @@ class Gangguan extends Model
         'status',
         'keterangan',
     ];
+
+    public function documents()
+    {
+        return $this->hasMany(GangguanDokumen::class);
+    }
 }

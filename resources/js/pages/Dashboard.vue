@@ -94,6 +94,7 @@
           :refresh-key="refreshKey"
           :can-manage="canManageKegiatan"
           :can-complete="props.user?.role === 'user'"
+          :can-upload="props.user?.role === 'user'"
           @create="openCreate"
           @edit="openEdit"
         />
@@ -108,6 +109,7 @@
           <AnggotaPanel v-else-if="active === 'anggota'" />
           <OpdPanel v-else-if="active === 'opd'" />
           <UserPanel v-else-if="active === 'user'" :current-user="props.user" />
+          <DokumenPanel v-else-if="active === 'dokumen'" />
           <PlaceholderPanel v-else />
         </div>
       </div>
@@ -120,6 +122,7 @@ import { computed, ref, watchEffect } from 'vue';
 import AnggotaPanel from '../components/AnggotaPanel.vue';
 import KegiatanForm from '../components/KegiatanForm.vue';
 import KegiatanPanel from '../components/KegiatanPanel.vue';
+import DokumenPanel from '../components/DokumenPanel.vue';
 import OpdPanel from '../components/OpdPanel.vue';
 import PlaceholderPanel from '../components/PlaceholderPanel.vue';
 import UserPanel from '../components/UserPanel.vue';
@@ -138,6 +141,7 @@ const menu = [
   { key: 'anggota', label: 'Daftar Anggota' },
   { key: 'opd', label: 'Daftar OPD' },
   { key: 'user', label: 'Daftar User' },
+  { key: 'dokumen', label: 'Dokumentasi' },
 ];
 
 const active = ref('kegiatan');

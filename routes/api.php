@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AnggotaController;
 use App\Http\Controllers\Api\OpdController;
 use App\Http\Controllers\Api\KegiatanController;
+use App\Http\Controllers\Api\GangguanDokumenController;
 use App\Http\Controllers\Api\GangguanController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
@@ -19,6 +20,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::apiResource('anggota', AnggotaController::class)->except(['show']);
     Route::apiResource('opd', OpdController::class)->except(['show']);
     Route::apiResource('users', UserController::class)->except(['show']);
+    Route::get('/dokumen', [GangguanDokumenController::class, 'index']);
+    Route::get('/gangguan/{gangguan}/dokumen', [GangguanDokumenController::class, 'show']);
+    Route::post('/gangguan/{gangguan}/dokumen', [GangguanDokumenController::class, 'store']);
     Route::get('/gangguan', [GangguanController::class, 'index']);
     Route::post('/gangguan/{gangguan}/complete', [GangguanController::class, 'complete']);
     Route::apiResource('gangguan', GangguanController::class)->only(['store', 'show', 'update', 'destroy']);

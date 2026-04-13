@@ -141,15 +141,24 @@
                   </svg>
                 </button>
               </template>
-
-              <button
-                v-else-if="canComplete && item.status === 'PROSES'"
-                type="button"
-                class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
-                @click="openComplete(item)"
-              >
-                Selesai
-              </button>
+              <template v-else>
+                <button
+                  v-if="canComplete && item.status === 'PROSES'"
+                  type="button"
+                  class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+                  @click="openComplete(item)"
+                >
+                  Selesai
+                </button>
+                <button
+                  v-if="canUpload"
+                  type="button"
+                  class="w-full rounded-lg border border-sky-500/40 px-3 py-2 text-sm text-sky-200 hover:border-sky-400"
+                  @click="openDocumentModal(item)"
+                >
+                  Upload Foto
+                </button>
+              </template>
             </div>
           </div>
         </div>
@@ -358,6 +367,102 @@
           </div>
         </div>
       </div>
+
+      <div
+        v-if="showDocumentModal"
+        class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4"
+        @click.self="closeDocumentModal"
+      >
+        <div class="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-950 p-5 shadow-2xl">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Upload Foto Dokumentasi</h3>
+              <p class="mt-1 text-sm text-slate-400">
+                File akan diunggah langsung ke storage server dan ditautkan ke kegiatan ini.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="rounded-lg border border-slate-700 px-3 py-1 text-sm text-slate-200 hover:border-slate-500"
+              @click="closeDocumentModal"
+            >
+              Tutup
+            </button>
+          </div>
+
+          <div v-if="documentError" class="mt-4 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+            {{ documentError }}
+          </div>
+
+          <div class="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+            <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
+              <p class="text-sm font-medium text-white">Dokumen yang sudah diunggah</p>
+              <div v-if="documentLoading" class="mt-3 text-sm text-slate-400">Memuat dokumen...</div>
+              <div v-else-if="documentItems.length === 0" class="mt-3 text-sm text-slate-400">
+                Belum ada dokumen untuk kegiatan ini.
+              </div>
+              <div v-else class="mt-3 grid gap-2">
+                <a
+                  v-for="doc in documentItems"
+                  :key="doc.id"
+                  :href="doc.drive_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 hover:border-slate-700"
+                >
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="truncate font-medium text-white">{{ doc.original_name }}</p>
+                      <p class="mt-1 text-xs text-slate-500">
+                        {{ doc.uploader?.name || '-' }} • {{ doc.created_at || '-' }}
+                      </p>
+                    </div>
+                    <span class="text-xs text-sky-200">Buka</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+
+            <form class="grid gap-4 rounded-xl border border-slate-800 bg-slate-900/50 p-4" @submit.prevent="submitDocument">
+              <div class="grid gap-2">
+                <label class="text-sm text-slate-300">File Foto</label>
+                <input
+                  ref="documentInputRef"
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  class="rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-slate-200"
+                  @change="handleDocumentFile"
+                  required
+                />
+              </div>
+              <label class="grid gap-2 text-sm text-slate-300">
+                Caption / Keterangan
+                <textarea
+                  v-model="documentCaption"
+                  class="min-h-28 rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2"
+                  placeholder="Opsional"
+                />
+              </label>
+
+              <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
+                <button
+                  type="submit"
+                  class="w-full rounded-lg bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 sm:w-auto"
+                >
+                  {{ documentUploading ? 'Mengunggah...' : 'Upload File' }}
+                </button>
+                <button
+                  type="button"
+                  class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+                  @click="closeDocumentModal"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </teleport>
   </div>
 </template>
@@ -366,6 +471,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
 import { completeGangguan, deleteGangguan, listGangguan } from '../services/gangguan';
+import { listGangguanDokumen, uploadGangguanDokumen } from '../services/dokumen';
 
 const props = defineProps({
   refreshKey: {
@@ -377,6 +483,10 @@ const props = defineProps({
     default: true,
   },
   canComplete: {
+    type: Boolean,
+    default: false,
+  },
+  canUpload: {
     type: Boolean,
     default: false,
   },
@@ -402,6 +512,14 @@ const exportOptions = [
 ];
 const showViewModal = ref(false);
 const viewItem = ref(null);
+const showDocumentModal = ref(false);
+const documentItem = ref(null);
+const documentItems = ref([]);
+const documentLoading = ref(false);
+const documentUploading = ref(false);
+const documentError = ref(null);
+const documentCaption = ref('');
+const documentInputRef = ref(null);
 const showCompleteModal = ref(false);
 const selectedItem = ref(null);
 const completeLoading = ref(false);
@@ -652,6 +770,91 @@ const openView = (item) => {
 const closeView = () => {
   showViewModal.value = false;
   viewItem.value = null;
+};
+
+const loadDocuments = async (gangguanId) => {
+  if (!gangguanId) {
+    documentItems.value = [];
+    return;
+  }
+
+  documentLoading.value = true;
+  documentError.value = null;
+  try {
+    documentItems.value = await listGangguanDokumen(gangguanId);
+  } catch (err) {
+    documentError.value = getErrorMessage(err, 'Gagal memuat dokumen.');
+  } finally {
+    documentLoading.value = false;
+  }
+};
+
+const openDocumentModal = async (item) => {
+  documentItem.value = item;
+  documentCaption.value = '';
+  documentItems.value = [];
+  documentError.value = null;
+  showDocumentModal.value = true;
+  await loadDocuments(item.id);
+};
+
+const closeDocumentModal = () => {
+  showDocumentModal.value = false;
+  documentItem.value = null;
+  documentItems.value = [];
+  documentLoading.value = false;
+  documentUploading.value = false;
+  documentError.value = null;
+  documentCaption.value = '';
+  if (documentInputRef.value) {
+    documentInputRef.value.value = '';
+  }
+};
+
+const handleDocumentFile = (event) => {
+  const [file] = event.target.files || [];
+  documentError.value = null;
+
+  if (!file) return;
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    documentError.value = 'File harus berupa foto JPG, PNG, atau WEBP.';
+    event.target.value = '';
+  }
+};
+
+const submitDocument = async () => {
+  if (!documentItem.value) return;
+  const input = documentInputRef.value;
+  const file = input?.files?.[0];
+
+  if (!file) {
+    documentError.value = 'Pilih file foto terlebih dahulu.';
+    return;
+  }
+
+  documentUploading.value = true;
+  documentError.value = null;
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (documentCaption.value.trim()) {
+      formData.append('caption', documentCaption.value.trim());
+    }
+
+    await uploadGangguanDokumen(documentItem.value.id, formData);
+    documentCaption.value = '';
+    if (input) {
+      input.value = '';
+    }
+    await loadDocuments(documentItem.value.id);
+    await load();
+  } catch (err) {
+    documentError.value = getErrorMessage(err, 'Gagal mengunggah dokumen.');
+  } finally {
+    documentUploading.value = false;
+  }
 };
 
 const openComplete = (item) => {
