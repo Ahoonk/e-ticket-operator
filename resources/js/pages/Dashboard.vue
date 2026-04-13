@@ -89,7 +89,7 @@
 
     <div class="min-w-0 flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
       <div class="min-h-0 flex-1 overflow-hidden pr-1">
-        <KegiatanPanel
+          <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"
           :can-manage="canManageKegiatan"
@@ -109,7 +109,10 @@
           <AnggotaPanel v-else-if="active === 'anggota'" />
           <OpdPanel v-else-if="active === 'opd'" />
           <UserPanel v-else-if="active === 'user'" :current-user="props.user" />
-          <DokumenPanel v-else-if="active === 'dokumen'" />
+          <DokumenPanel
+            v-else-if="active === 'dokumen'"
+            :can-delete="props.user?.role === 'admin' || props.user?.role === 'superadmin'"
+          />
           <PlaceholderPanel v-else />
         </div>
       </div>

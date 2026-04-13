@@ -109,4 +109,47 @@ class GangguanDokumenTest extends TestCase
             'original_name' => 'dokumentasi.jpg',
         ]);
     }
+
+    public function test_admin_can_delete_document(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+        $user = User::factory()->create([
+            'role' => 'user',
+        ]);
+        $gangguan = Gangguan::create([
+            'tanggal_gangguan' => now()->toDateString(),
+            'lokasi_opd' => 'OPD A',
+            'jenis_gangguan' => 'Internet Down',
+            'status' => 'PROSES',
+            'tim_bertugas' => $user->name.'::'.$user->id,
+        ]);
+
+        Storage::disk('public')->put('gangguan-documents/'.$gangguan->id.'/stored-dokumentasi.jpg', 'fake-image');
+
+        $dokumen = GangguanDokumen::create([
+            'gangguan_id' => $gangguan->id,
+            'user_id' => $user->id,
+            'original_name' => 'dokumentasi.jpg',
+            'stored_name' => 'stored-dokumentasi.jpg',
+            'drive_file_id' => 'gangguan-documents/'.$gangguan->id.'/stored-dokumentasi.jpg',
+            'drive_url' => 'http://localhost/storage/gangguan-documents/'.$gangguan->id.'/stored-dokumentasi.jpg',
+            'drive_content_url' => 'http://localhost/storage/gangguan-documents/'.$gangguan->id.'/stored-dokumentasi.jpg',
+            'mime_type' => 'image/jpeg',
+            'file_size' => 12345,
+            'caption' => 'Foto 1',
+        ]);
+
+        $response = $this->actingAs($admin)->deleteJson("/api/dokumen/{$dokumen->id}");
+
+        $response->assertOk();
+        $response->assertJsonPath('message', 'deleted');
+        $this->assertDatabaseMissing('gangguan_documents', [
+            'id' => $dokumen->id,
+        ]);
+        Storage::disk('public')->assertMissing('gangguan-documents/'.$gangguan->id.'/stored-dokumentasi.jpg');
+    }
 }

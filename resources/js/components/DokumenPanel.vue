@@ -63,12 +63,9 @@
         </div>
 
         <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <a
+          <article
             v-for="doc in group.documents"
             :key="doc.id"
-            :href="doc.drive_url"
-            target="_blank"
-            rel="noopener noreferrer"
             class="rounded-xl border border-slate-800 bg-slate-950/50 p-4 transition hover:border-slate-700"
           >
             <div class="flex items-start justify-between gap-2">
@@ -78,16 +75,32 @@
                   Diunggah {{ formatDateTime(doc.created_at) }}
                 </p>
               </div>
-              <span class="rounded-full border border-emerald-500/30 px-2 py-0.5 text-[10px] text-emerald-200">
-                Lihat
-              </span>
+              <div class="flex items-center gap-2">
+                <a
+                  :href="doc.drive_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="rounded-full border border-emerald-500/30 px-2 py-0.5 text-[10px] text-emerald-200 transition hover:border-emerald-400"
+                >
+                  Lihat
+                </a>
+                <button
+                  v-if="canDelete"
+                  type="button"
+                  class="rounded-full border border-rose-500/40 px-2 py-0.5 text-[10px] text-rose-200 transition hover:border-rose-400 disabled:opacity-50"
+                  :disabled="deletingId === doc.id"
+                  @click="removeDoc(doc)"
+                >
+                  {{ deletingId === doc.id ? 'Hapus...' : 'Hapus' }}
+                </button>
+              </div>
             </div>
 
             <div class="mt-3 grid gap-1 text-xs text-slate-400">
               <p>Pengunggah: <span class="text-slate-200">{{ doc.uploader?.name || '-' }}</span></p>
               <p>Caption: <span class="text-slate-200">{{ doc.caption || '-' }}</span></p>
             </div>
-          </a>
+          </article>
         </div>
       </article>
     </div>
@@ -97,12 +110,20 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { listDokumen } from '../services/dokumen';
+import { deleteDokumen, listDokumen } from '../services/dokumen';
+
+const props = defineProps({
+  canDelete: {
+    type: Boolean,
+    default: false,
+  },
+});
 
 const groups = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const search = ref('');
+const deletingId = ref(null);
 
 const load = async () => {
   loading.value = true;
@@ -129,6 +150,21 @@ const load = async () => {
     error.value = getErrorMessage(err, 'Gagal memuat dokumen.');
   } finally {
     loading.value = false;
+  }
+};
+
+const removeDoc = async (doc) => {
+  if (!confirm(`Hapus dokumen "${doc.original_name}"?`)) return;
+
+  deletingId.value = doc.id;
+  error.value = null;
+  try {
+    await deleteDokumen(doc.id);
+    await load();
+  } catch (err) {
+    error.value = getErrorMessage(err, 'Gagal menghapus dokumen.');
+  } finally {
+    deletingId.value = null;
   }
 };
 

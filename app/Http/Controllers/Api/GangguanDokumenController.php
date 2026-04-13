@@ -7,6 +7,7 @@ use App\Models\Gangguan;
 use App\Models\GangguanDokumen;
 use App\Services\GangguanDocumentStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 
 class GangguanDokumenController extends Controller
@@ -171,5 +172,29 @@ class GangguanDokumenController extends Controller
         ]);
 
         return response()->json($this->documentPayload($document), 201);
+    }
+
+    /**
+     * Remove the specified document.
+     */
+    public function destroy(Request $request, GangguanDokumen $dokumen)
+    {
+        $actor = $request->user();
+
+        if (!$actor || !in_array($actor->role, ['superadmin', 'admin'], true)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if (!Schema::hasTable('gangguan_documents')) {
+            return response()->json(['message' => 'Fitur dokumen belum aktif di server. Jalankan migrasi database.'], 503);
+        }
+
+        if ($dokumen->drive_file_id && Storage::disk('public')->exists($dokumen->drive_file_id)) {
+            Storage::disk('public')->delete($dokumen->drive_file_id);
+        }
+
+        $dokumen->delete();
+
+        return response()->json(['message' => 'deleted']);
     }
 }

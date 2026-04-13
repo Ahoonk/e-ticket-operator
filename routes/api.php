@@ -23,6 +23,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/dokumen', [GangguanDokumenController::class, 'index']);
     Route::get('/gangguan/{gangguan}/dokumen', [GangguanDokumenController::class, 'show']);
     Route::post('/gangguan/{gangguan}/dokumen', [GangguanDokumenController::class, 'store']);
+    Route::delete('/dokumen/{dokumen}', [GangguanDokumenController::class, 'destroy']);
     Route::get('/gangguan', [GangguanController::class, 'index']);
     Route::post('/gangguan/{gangguan}/complete', [GangguanController::class, 'complete']);
     Route::apiResource('gangguan', GangguanController::class)->only(['store', 'show', 'update', 'destroy']);

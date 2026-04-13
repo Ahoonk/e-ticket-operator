@@ -14,3 +14,8 @@ export async function uploadGangguanDokumen(gangguanId, formData) {
   const { data } = await api.post(`/gangguan/${gangguanId}/dokumen`, formData);
   return data;
 }
+
+export async function deleteDokumen(id) {
+  const { data } = await api.delete(`/dokumen/${id}`);
+  return data;
+}
