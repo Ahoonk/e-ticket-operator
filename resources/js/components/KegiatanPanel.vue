@@ -750,26 +750,27 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
 
   const uploadedDocuments = Array.isArray(documents) ? documents : [];
   if (uploadedDocuments.length > 0) {
+    const visibleDocuments = uploadedDocuments.slice(0, 4);
     const galleryStartY = y + 2;
-    const galleryColumns = uploadedDocuments.length > 4 ? 3 : 2;
+    const galleryColumns = 2;
+    const galleryRows = 2;
     const galleryGap = 4;
-    const galleryRows = Math.ceil(uploadedDocuments.length / galleryColumns);
     const availableHeight = pageHeight - galleryStartY - margin - 12;
     const cellHeight = Math.max(
-      34,
-      Math.floor((availableHeight - 6 - (galleryRows - 1) * galleryGap) / galleryRows),
+      28,
+      Math.floor((availableHeight - 2 - (galleryRows - 1) * galleryGap) / galleryRows),
     );
     const cellWidth = (contentWidth - (galleryColumns - 1) * galleryGap) / galleryColumns;
 
     let loadErrorCount = 0;
-    for (let index = 0; index < uploadedDocuments.length; index += 1) {
-      const documentItem = uploadedDocuments[index];
+    for (let index = 0; index < visibleDocuments.length; index += 1) {
+      const documentItem = visibleDocuments[index];
       const row = Math.floor(index / galleryColumns);
       const col = index % galleryColumns;
       const cellX = margin + col * (cellWidth + galleryGap);
       const cellY = galleryStartY + row * (cellHeight + galleryGap);
       const imagePadding = 0.5;
-      const imageBoxHeight = Math.max(18, cellHeight - 1);
+      const imageBoxHeight = Math.max(16, cellHeight - 1);
       const imageBoxWidth = cellWidth - imagePadding * 2;
       const imageX = cellX + imagePadding;
       const imageY = cellY + imagePadding;
@@ -791,6 +792,13 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
         doc.setTextColor(120, 120, 120);
         doc.text('Foto tidak dapat dimuat', cellX + 2, cellY + cellHeight / 2);
       }
+    }
+
+    if (uploadedDocuments.length > visibleDocuments.length) {
+      doc.setFont('times', 'italic');
+      doc.setFontSize(7);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Menampilkan 4 foto pertama dari ${uploadedDocuments.length} foto.`, margin, pageHeight - 18);
     }
 
     if (loadErrorCount > 0) {
