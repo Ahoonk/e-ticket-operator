@@ -7,6 +7,7 @@ use App\Models\Gangguan;
 use App\Models\GangguanDokumen;
 use App\Services\GangguanDocumentStorageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 
 class GangguanDokumenController extends Controller
 {
@@ -89,6 +90,10 @@ class GangguanDokumenController extends Controller
             return response()->json(['message' => 'Forbidden'], 403);
         }
 
+        if (!Schema::hasTable('gangguan_documents')) {
+            return response()->json(['message' => 'Fitur dokumen belum aktif di server. Jalankan migrasi database.'], 503);
+        }
+
         $documents = GangguanDokumen::query()
             ->with(['gangguan', 'user'])
             ->orderByDesc('id')
@@ -107,6 +112,10 @@ class GangguanDokumenController extends Controller
 
         if (!$actor) {
             return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if (!Schema::hasTable('gangguan_documents')) {
+            return response()->json(['message' => 'Fitur dokumen belum aktif di server. Jalankan migrasi database.'], 503);
         }
 
         if ($actor->role === 'user' && !$this->isAssignedToUser($gangguan, $actor)) {
@@ -131,6 +140,10 @@ class GangguanDokumenController extends Controller
 
         if (!$actor || $actor->role !== 'user') {
             return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if (!Schema::hasTable('gangguan_documents')) {
+            return response()->json(['message' => 'Fitur dokumen belum aktif di server. Jalankan migrasi database.'], 503);
         }
 
         if (!$this->isAssignedToUser($gangguan, $actor)) {

@@ -150,13 +150,13 @@
                 >
                   Selesai
                 </button>
-                <button
-                  v-if="canUpload"
-                  type="button"
-                  class="w-full rounded-lg border border-sky-500/40 px-3 py-2 text-sm text-sky-200 hover:border-sky-400"
-                  @click="openDocumentModal(item)"
-                >
-                  Upload Foto
+              <button
+                v-if="canUpload"
+                type="button"
+                class="inline-flex rounded-lg border border-sky-500/40 px-3 py-2 text-sm text-sky-200 hover:border-sky-400"
+                @click="openDocumentModal(item)"
+              >
+                Upload Foto
                 </button>
               </template>
             </div>
@@ -447,13 +447,13 @@
               <div class="flex flex-wrap gap-3 border-t border-slate-800 pt-4">
                 <button
                   type="submit"
-                  class="w-full rounded-lg bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 sm:w-auto"
+                  class="inline-flex rounded-lg bg-sky-500 px-5 py-2 text-sm font-semibold text-slate-950 transition hover:bg-sky-400"
                 >
                   {{ documentUploading ? 'Mengunggah...' : 'Upload File' }}
                 </button>
                 <button
                   type="button"
-                  class="w-full rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500 sm:w-auto"
+                  class="inline-flex rounded-lg border border-slate-700 px-5 py-2 text-sm text-slate-200 hover:border-slate-500"
                   @click="closeDocumentModal"
                 >
                   Batal
