@@ -629,6 +629,29 @@ const formatTeamMembers = (value) => {
     .join(', ');
 };
 
+const loadImageAsDataUrl = async (url) => {
+  const response = await fetch(url, { credentials: 'same-origin' });
+  if (!response.ok) {
+    throw new Error('Gagal memuat gambar.');
+  }
+
+  const blob = await response.blob();
+
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Gagal membaca gambar.'));
+    reader.readAsDataURL(blob);
+  });
+};
+
+const getImageFormat = (mimeType, url) => {
+  const normalizedMime = String(mimeType || '').toLowerCase();
+  if (normalizedMime.includes('png')) return 'PNG';
+  if (normalizedMime.includes('webp')) return 'WEBP';
+  return 'JPEG';
+};
+
 const statusBadgeColor = (status) => {
   const value = (status || '').toUpperCase();
   if (value === 'SELESAI') return { fill: [34, 197, 94], text: [255, 255, 255] };
@@ -636,7 +659,7 @@ const statusBadgeColor = (status) => {
   return { fill: [239, 68, 68], text: [255, 255, 255] };
 };
 
-const drawPdfPage = (doc, item, pageNumber, totalPages) => {
+const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
   const pageWidth = 210;
   const pageHeight = 297;
   const margin = 10;
@@ -654,8 +677,8 @@ const drawPdfPage = (doc, item, pageNumber, totalPages) => {
   const drawBox = (x, y, w, label, value, minLines = 1) => {
     const padding = 3;
     const labelH = 5;
-    const fontSize = 12;
-    const lineHeight = 4.5;
+    const fontSize = 11;
+    const lineHeight = 4.1;
     doc.setFont('times', 'normal');
     doc.setFontSize(fontSize);
     const lines = doc.splitTextToSize(normalizeText(value), w - padding * 2);
@@ -666,15 +689,15 @@ const drawPdfPage = (doc, item, pageNumber, totalPages) => {
     doc.setLineWidth(0.4);
     doc.roundedRect(x, y, w, boxH, 3, 3);
 
-    doc.setTextColor(...labelColor);
-    doc.setFont('times', 'bold');
-    doc.setFontSize(12);
-    doc.text(label, x + padding, y + 5.5);
+  doc.setTextColor(...labelColor);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(11);
+  doc.text(label, x + padding, y + 5.5);
 
-    doc.setTextColor(...bodyColor);
-    doc.setFont('times', 'normal');
-    doc.setFontSize(12);
-    doc.text(lines, x + padding, y + 12);
+  doc.setTextColor(...bodyColor);
+  doc.setFont('times', 'normal');
+  doc.setFontSize(11);
+  doc.text(lines, x + padding, y + 12);
 
     return boxH;
   };
@@ -693,7 +716,7 @@ const drawPdfPage = (doc, item, pageNumber, totalPages) => {
   doc.roundedRect(margin, y, contentWidth, titleBoxH, 3, 3);
   doc.setTextColor(...labelColor);
   doc.setFont('times', 'bold');
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.text('Judul', margin + 3, y + 5.5);
   doc.setFont('times', 'normal');
   doc.text(normalizeText(item.jenis_gangguan), margin + 3, y + 11.5);
@@ -725,9 +748,77 @@ const drawPdfPage = (doc, item, pageNumber, totalPages) => {
   y += drawBox(margin, y, contentWidth, 'Tim Bertugas', formatTeamMembers(item.tim_bertugas), 2) + 3;
   drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2);
 
+  const uploadedDocuments = Array.isArray(documents) ? documents : [];
+  if (uploadedDocuments.length > 0) {
+    const galleryStartY = y + 6;
+    const galleryColumns = uploadedDocuments.length > 4 ? 4 : 3;
+    const galleryGap = 3;
+    const galleryRows = Math.ceil(uploadedDocuments.length / galleryColumns);
+    const availableHeight = pageHeight - galleryStartY - margin - 10;
+    const cellHeight = Math.max(
+      16,
+      Math.floor((availableHeight - 7 - (galleryRows - 1) * galleryGap) / galleryRows),
+    );
+    const cellWidth = (contentWidth - (galleryColumns - 1) * galleryGap) / galleryColumns;
+
+    doc.setTextColor(...labelColor);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(11);
+    doc.text('Dokumentasi Foto', margin, galleryStartY);
+
+    let loadErrorCount = 0;
+    for (let index = 0; index < uploadedDocuments.length; index += 1) {
+      const documentItem = uploadedDocuments[index];
+      const row = Math.floor(index / galleryColumns);
+      const col = index % galleryColumns;
+      const cellX = margin + col * (cellWidth + galleryGap);
+      const cellY = galleryStartY + 5 + row * (cellHeight + galleryGap);
+      const imagePadding = 1.8;
+      const imageBoxHeight = Math.max(8, cellHeight - 7);
+      const imageBoxWidth = cellWidth - imagePadding * 2;
+      const imageX = cellX + imagePadding;
+      const imageY = cellY + imagePadding;
+
+      doc.setDrawColor(...borderColor);
+      doc.setLineWidth(0.25);
+      doc.roundedRect(cellX, cellY, cellWidth, cellHeight, 2, 2);
+
+      try {
+        const dataUrl = await loadImageAsDataUrl(documentItem.drive_url);
+        const imageFormat = getImageFormat(documentItem.mime_type, documentItem.drive_url);
+        const props = doc.getImageProperties(dataUrl);
+        const ratio = Math.min(imageBoxWidth / props.width, imageBoxHeight / props.height);
+        const drawWidth = props.width * ratio;
+        const drawHeight = props.height * ratio;
+        const offsetX = imageX + (imageBoxWidth - drawWidth) / 2;
+        const offsetY = imageY + (imageBoxHeight - drawHeight) / 2;
+        doc.addImage(dataUrl, imageFormat, offsetX, offsetY, drawWidth, drawHeight);
+      } catch (err) {
+        loadErrorCount += 1;
+        doc.setFont('times', 'italic');
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text('Foto tidak dapat dimuat', cellX + 3, cellY + cellHeight / 2);
+      }
+
+      doc.setTextColor(...labelColor);
+      doc.setFont('times', 'normal');
+      doc.setFontSize(8);
+      const caption = doc.splitTextToSize(normalizeText(documentItem.original_name), cellWidth - 4);
+      doc.text(caption.slice(0, 2), cellX + 2, cellY + cellHeight - 2);
+    }
+
+    if (loadErrorCount > 0) {
+      doc.setFont('times', 'italic');
+      doc.setFontSize(8);
+      doc.setTextColor(120, 120, 120);
+      doc.text(`Sebagian foto tidak dapat dimuat (${loadErrorCount}).`, margin, pageHeight - 14);
+    }
+  }
+
   doc.setTextColor(...labelColor);
   doc.setFont('times', 'normal');
-  doc.setFontSize(12);
+  doc.setFontSize(11);
   doc.text(`Dicetak pada ${new Date().toLocaleString('id-ID')}`, margin, pageHeight - 10);
 };
 
@@ -744,13 +835,22 @@ const confirmExport = async () => {
 
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const documentsByGangguan = new Map();
 
-    rows.forEach((item, index) => {
+    await Promise.all(rows.map(async (item) => {
+      try {
+        documentsByGangguan.set(item.id, await listGangguanDokumen(item.id));
+      } catch (err) {
+        documentsByGangguan.set(item.id, []);
+      }
+    }));
+
+    for (const [index, item] of rows.entries()) {
       if (index > 0) {
         doc.addPage();
       }
-      drawPdfPage(doc, item, index + 1, rows.length);
-    });
+      await drawPdfPage(doc, item, documentsByGangguan.get(item.id) || [], index + 1, rows.length);
+    }
 
     const suffix = exportStatusChoice.value === 'all' ? 'semua' : exportStatusChoice.value.toLowerCase().replace(/\s+/g, '-');
     doc.save(`kegiatan-${suffix}.pdf`);
