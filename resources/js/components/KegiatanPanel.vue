@@ -750,21 +750,21 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
 
   const uploadedDocuments = Array.isArray(documents) ? documents : [];
   if (uploadedDocuments.length > 0) {
-    const galleryStartY = y + 6;
-    const galleryColumns = uploadedDocuments.length > 4 ? 4 : 3;
-    const galleryGap = 3;
+    const galleryStartY = y + 10;
+    const galleryColumns = uploadedDocuments.length > 4 ? 3 : 2;
+    const galleryGap = 4;
     const galleryRows = Math.ceil(uploadedDocuments.length / galleryColumns);
-    const availableHeight = pageHeight - galleryStartY - margin - 10;
+    const availableHeight = pageHeight - galleryStartY - margin - 12;
     const cellHeight = Math.max(
-      16,
-      Math.floor((availableHeight - 7 - (galleryRows - 1) * galleryGap) / galleryRows),
+      34,
+      Math.floor((availableHeight - 6 - (galleryRows - 1) * galleryGap) / galleryRows),
     );
     const cellWidth = (contentWidth - (galleryColumns - 1) * galleryGap) / galleryColumns;
 
     doc.setTextColor(...labelColor);
     doc.setFont('times', 'bold');
-    doc.setFontSize(11);
-    doc.text('Dokumentasi Foto', margin, galleryStartY);
+    doc.setFontSize(10);
+    doc.text('Dokumentasi Foto', margin, galleryStartY - 2);
 
     let loadErrorCount = 0;
     for (let index = 0; index < uploadedDocuments.length; index += 1) {
@@ -772,16 +772,12 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
       const row = Math.floor(index / galleryColumns);
       const col = index % galleryColumns;
       const cellX = margin + col * (cellWidth + galleryGap);
-      const cellY = galleryStartY + 5 + row * (cellHeight + galleryGap);
-      const imagePadding = 1.8;
-      const imageBoxHeight = Math.max(8, cellHeight - 7);
+      const cellY = galleryStartY + row * (cellHeight + galleryGap);
+      const imagePadding = 0.5;
+      const imageBoxHeight = Math.max(18, cellHeight - 1);
       const imageBoxWidth = cellWidth - imagePadding * 2;
       const imageX = cellX + imagePadding;
       const imageY = cellY + imagePadding;
-
-      doc.setDrawColor(...borderColor);
-      doc.setLineWidth(0.25);
-      doc.roundedRect(cellX, cellY, cellWidth, cellHeight, 2, 2);
 
       try {
         const dataUrl = await loadImageAsDataUrl(documentItem.drive_url);
@@ -796,23 +792,17 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
       } catch (err) {
         loadErrorCount += 1;
         doc.setFont('times', 'italic');
-        doc.setFontSize(9);
+        doc.setFontSize(8);
         doc.setTextColor(120, 120, 120);
-        doc.text('Foto tidak dapat dimuat', cellX + 3, cellY + cellHeight / 2);
+        doc.text('Foto tidak dapat dimuat', cellX + 2, cellY + cellHeight / 2);
       }
-
-      doc.setTextColor(...labelColor);
-      doc.setFont('times', 'normal');
-      doc.setFontSize(8);
-      const caption = doc.splitTextToSize(normalizeText(documentItem.original_name), cellWidth - 4);
-      doc.text(caption.slice(0, 2), cellX + 2, cellY + cellHeight - 2);
     }
 
     if (loadErrorCount > 0) {
       doc.setFont('times', 'italic');
-      doc.setFontSize(8);
+      doc.setFontSize(7);
       doc.setTextColor(120, 120, 120);
-      doc.text(`Sebagian foto tidak dapat dimuat (${loadErrorCount}).`, margin, pageHeight - 14);
+      doc.text(`Sebagian foto tidak dapat dimuat (${loadErrorCount}).`, margin, pageHeight - 13);
     }
   }
 
