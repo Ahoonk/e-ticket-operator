@@ -50,9 +50,10 @@
           <p class="mt-1 text-sm text-slate-400">
             {{ item.lokasi_opd || 'Lokasi belum diisi' }}
           </p>
-          <p class="mt-1 text-xs text-slate-500">
-            Tanggal input: <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
-          </p>
+          <div class="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
+            <span>Tanggal input:</span>
+            <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
+          </div>
 
           <div class="mt-4 grid gap-2 text-xs text-slate-400">
             <div>

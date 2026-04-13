@@ -51,6 +51,13 @@
           <option value="all">Semua Status</option>
           <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
         </select>
+        <select
+          v-model="sortBy"
+          class="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 sm:w-auto"
+        >
+          <option value="latest">Tanggal input terbaru</option>
+          <option value="status">Status pekerjaan</option>
+        </select>
       </div>
       <p class="text-xs text-slate-400 sm:text-right">Total: {{ filteredItems.length }}</p>
     </div>
@@ -70,7 +77,7 @@
       <div v-else class="h-full overflow-y-auto pr-1">
         <div class="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <div
-            v-for="(item, index) in filteredItems"
+            v-for="(item, index) in sortedItems"
             :key="item.id"
             class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700 sm:p-5"
           >
@@ -89,9 +96,10 @@
             <p class="mt-1 text-xs text-slate-400 sm:text-sm">
               {{ item.lokasi_opd || '-' }}
             </p>
-            <p class="mt-1 text-[11px] text-slate-500">
-              Tanggal input: <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
-            </p>
+            <div class="mt-2 flex items-center justify-between gap-3 text-[11px] text-slate-500">
+              <span>Tanggal input:</span>
+              <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
+            </div>
 
             <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
               <div>
@@ -503,6 +511,7 @@ const error = ref(null);
 const statusOptions = ['BELUM DIKERJAKAN', 'PROSES', 'SELESAI'];
 const search = ref('');
 const statusFilter = ref('all');
+const sortBy = ref('latest');
 const showExportModal = ref(false);
 const exportLoading = ref(false);
 const exportError = ref(null);
@@ -561,6 +570,29 @@ const filteredItems = computed(() => {
       .toLowerCase();
 
     return haystack.includes(term);
+  });
+});
+
+const statusPriority = (status) => {
+  const value = (status || '').toUpperCase();
+  if (value === 'PROSES') return 0;
+  if (value === 'BELUM DIKERJAKAN') return 1;
+  if (value === 'SELESAI') return 2;
+  return 3;
+};
+
+const sortedItems = computed(() => {
+  return [...filteredItems.value].sort((a, b) => {
+    if (sortBy.value === 'status') {
+      const statusDiff = statusPriority(a.status) - statusPriority(b.status);
+      if (statusDiff !== 0) return statusDiff;
+    }
+
+    const dateA = a.tanggal_gangguan ? new Date(a.tanggal_gangguan).getTime() : 0;
+    const dateB = b.tanggal_gangguan ? new Date(b.tanggal_gangguan).getTime() : 0;
+    if (dateA !== dateB) return dateB - dateA;
+
+    return (b.id || 0) - (a.id || 0);
   });
 });
 
