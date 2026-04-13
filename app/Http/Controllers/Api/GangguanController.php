@@ -50,25 +50,15 @@ class GangguanController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Gangguan::query();
-
         $user = $request->user();
-        if ($user && $user->role === 'user') {
-            $needle = str_replace(' ', '', trim($user->name));
-            $query->where(function ($subQuery) use ($user, $needle) {
-                $subQuery->whereRaw(
-                    "CONCAT(',', COALESCE(tim_bertugas, ''), ',') LIKE ?",
-                    ['%,::'.$user->id.',%']
-                )->orWhereRaw(
-                    "CONCAT(',', REPLACE(COALESCE(tim_bertugas, ''), ' ', ''), ',') LIKE ?",
-                    ['%,'.$needle.',%']
-                );
-            });
-        }
-
-        $items = $query->orderByDesc('tanggal_gangguan')
+        $items = Gangguan::query()
+            ->orderByDesc('tanggal_gangguan')
             ->orderByDesc('id')
             ->get();
+
+        if ($user && $user->role === 'user') {
+            $items = $items->filter(fn (Gangguan $gangguan) => $this->isAssignedToUser($gangguan, $user))->values();
+        }
 
         return response()->json($items);
     }
