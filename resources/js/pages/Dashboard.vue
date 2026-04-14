@@ -89,12 +89,13 @@
 
     <div class="min-w-0 flex h-full min-h-0 flex-col rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
       <div class="min-h-0 flex-1 overflow-hidden pr-1">
-          <KegiatanPanel
+        <KegiatanPanel
           v-if="active === 'kegiatan'"
           :refresh-key="refreshKey"
           :can-manage="canManageKegiatan"
           :can-complete="props.user?.role === 'user'"
           :can-upload="props.user?.role === 'user'"
+          :current-user="props.user"
           @create="openCreate"
           @edit="openEdit"
         />

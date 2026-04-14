@@ -501,6 +501,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  currentUser: {
+    type: Object,
+    default: null,
+  },
 });
 
 const emit = defineEmits(['create', 'edit']);
@@ -687,6 +691,21 @@ const getImageFormat = (mimeType, url) => {
   return 'JPEG';
 };
 
+const formatPdfDate = (value) => {
+  if (!value) return '-';
+  const [year, month, day] = String(value).split('-');
+  if (!year || !month || !day) return String(value);
+
+  const formatted = new Date(Number(year), Number(month) - 1, Number(day));
+  if (Number.isNaN(formatted.getTime())) return String(value);
+
+  return formatted.toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
+
 const statusBadgeColor = (status) => {
   const value = (status || '').toUpperCase();
   if (value === 'SELESAI') return { fill: [34, 197, 94], text: [255, 255, 255] };
@@ -704,7 +723,6 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
   const leftX = margin;
   const rightX = margin + columnWidth + columnGap;
 
-  const titleColor = [0, 0, 0];
   const labelColor = [0, 0, 0];
   const bodyColor = [0, 0, 0];
   const borderColor = [0, 0, 0];
@@ -720,50 +738,41 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
     const actualLines = Math.max(lines.length, minLines);
     const boxH = labelH + 5 + actualLines * lineHeight + 4;
 
-    doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(x, y, w, boxH, 3, 3);
+  doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(x, y, w, boxH, 3, 3);
+    doc.setTextColor(...labelColor);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(11);
+    doc.text(label, x + padding, y + 5.5);
 
-  doc.setTextColor(...labelColor);
-  doc.setFont('times', 'bold');
-  doc.setFontSize(11);
-  doc.text(label, x + padding, y + 5.5);
-
-  doc.setTextColor(...bodyColor);
-  doc.setFont('times', 'normal');
-  doc.setFontSize(11);
-  doc.text(lines, x + padding, y + 12);
+    doc.setTextColor(...bodyColor);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(11);
+    doc.text(lines, x + padding, y + 12);
 
     return boxH;
   };
 
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
-  const badge = statusBadgeColor(item.status);
-  const badgeLabel = item.status || 'BELUM DIKERJAKAN';
-  const badgeWidth = Math.max(34, doc.getTextWidth(badgeLabel) + 16);
 
   let y = margin;
 
-  const titleBoxH = 18;
+  const titleBoxH = 20;
   doc.setDrawColor(...borderColor);
   doc.setLineWidth(0.4);
   doc.roundedRect(margin, y, contentWidth, titleBoxH, 3, 3);
   doc.setTextColor(...labelColor);
   doc.setFont('times', 'bold');
   doc.setFontSize(11);
-  doc.text('Judul', margin + 3, y + 5.5);
+  doc.text('Laporan Kegiatan Harian', pageWidth / 2, y + 5.5, { align: 'center' });
   doc.setFont('times', 'normal');
-  doc.text(normalizeText(item.jenis_gangguan), margin + 3, y + 11.5);
-
-  const badgeX = pageWidth - margin - badgeWidth - 3;
-  const badgeY = y + 4;
-  doc.setFillColor(...badge.fill);
-  doc.roundedRect(badgeX, badgeY, badgeWidth, 10, 5, 5, 'F');
-  doc.setTextColor(...badge.text);
-  doc.setFont('times', 'bold');
-  doc.setFontSize(12);
-  doc.text(badgeLabel, badgeX + 8, badgeY + 7);
+  doc.setFontSize(10.5);
+  doc.text(normalizeText(item.jenis_gangguan), pageWidth / 2, y + 11.5, { align: 'center' });
+  doc.setFont('times', 'normal');
+  doc.setFontSize(10.5);
+  doc.text(formatPdfDate(item.tanggal_gangguan), pageWidth / 2, y + 16.5, { align: 'center' });
   y += titleBoxH + 4;
 
   const row1 = Math.max(
@@ -864,10 +873,17 @@ const confirmExport = async () => {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const documentsByGangguan = new Map();
+    const isUserRole = props.currentUser?.role === 'user';
 
     await Promise.all(rows.map(async (item) => {
       try {
-        documentsByGangguan.set(item.id, await listGangguanDokumen(item.id));
+        const documents = await listGangguanDokumen(item.id);
+        documentsByGangguan.set(
+          item.id,
+          isUserRole
+            ? documents.filter((document) => Number(document.uploader?.id) === Number(props.currentUser?.id))
+            : documents,
+        );
       } catch (err) {
         documentsByGangguan.set(item.id, []);
       }
