@@ -51,7 +51,7 @@
               </span>
             </div>
             <p class="mt-1 text-sm text-slate-400">
-              {{ group.gangguan.lokasi_opd || '-' }} - {{ group.gangguan.tanggal_gangguan || '-' }}
+              {{ group.gangguan.lokasi_opd || '-' }} - {{ formatDateTime(group.gangguan.tanggal_gangguan) }}
             </p>
             <p class="mt-2 text-xs text-slate-500">
               Tim: {{ formatTeamMembers(group.gangguan.tim_bertugas) || '-' }}
@@ -111,6 +111,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
 import { deleteDokumen, listDokumen } from '../services/dokumen';
+import { formatDateTime } from '../utils/datetime';
 
 const props = defineProps({
   canDelete: {
@@ -185,11 +186,6 @@ const formatTeamMembers = (value) => {
     })
     .filter(Boolean)
     .join(', ');
-};
-
-const formatDateTime = (value) => {
-  if (!value) return '-';
-  return value;
 };
 
 const filteredGroups = computed(() => {

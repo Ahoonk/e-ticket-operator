@@ -65,8 +65,8 @@
         <input v-model="form.jenis_gangguan" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
-        Tanggal Gangguan
-        <input v-model="form.tanggal_gangguan" type="date" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
+        Tanggal Gangguan & Jam
+        <input v-model="form.tanggal_gangguan" type="datetime-local" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
         Status
@@ -81,12 +81,12 @@
         </select>
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
-        Mulai Pengerjaan
-        <input v-model="form.mulai_pengerjaan" type="date" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
+        Mulai Pengerjaan & Jam
+        <input v-model="form.mulai_pengerjaan" type="datetime-local" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
-        Selesai Pekerjaan
-        <input v-model="form.selesai_pengerjaan" type="date" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
+        Selesai Pekerjaan & Jam
+        <input v-model="form.selesai_pengerjaan" type="datetime-local" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" />
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
         Kendala
@@ -174,6 +174,7 @@ import { getErrorMessage } from '../utils/errors';
 import { createGangguan, updateGangguan } from '../services/gangguan';
 import { listAnggota } from '../services/anggota';
 import { listOpd } from '../services/opd';
+import { toDateTimeLocalValue } from '../utils/datetime';
 
 const props = defineProps({
   initialData: {
@@ -217,11 +218,11 @@ const hydrateForm = (item) => {
     ? item.tim_bertugas.split(',').map((name) => name.trim()).filter(Boolean)
     : [];
   form.value = {
-    tanggal_gangguan: item?.tanggal_gangguan || '',
+    tanggal_gangguan: toDateTimeLocalValue(item?.tanggal_gangguan),
     lokasi_opd: item?.lokasi_opd || '',
     jenis_gangguan: item?.jenis_gangguan || '',
-    mulai_pengerjaan: item?.mulai_pengerjaan || '',
-    selesai_pengerjaan: item?.selesai_pengerjaan || '',
+    mulai_pengerjaan: toDateTimeLocalValue(item?.mulai_pengerjaan),
+    selesai_pengerjaan: toDateTimeLocalValue(item?.selesai_pengerjaan),
     kendala: item?.kendala || '',
     tindak_lanjut: item?.tindak_lanjut || '',
     tim_bertugas: timBertugas,

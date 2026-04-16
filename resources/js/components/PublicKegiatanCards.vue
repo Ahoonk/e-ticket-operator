@@ -41,7 +41,7 @@
               <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
               {{ item.status || 'BELUM DIKERJAKAN' }}
             </span>
-            <span class="text-xs text-slate-500">{{ formatDate(item.tanggal_gangguan) }}</span>
+            <span class="text-xs text-slate-500">{{ formatDateTime(item.tanggal_gangguan) }}</span>
           </div>
 
           <h3 class="mt-4 text-base font-semibold text-white">
@@ -52,7 +52,7 @@
           </p>
           <div class="mt-2 flex items-center justify-between gap-3 text-xs text-slate-500">
             <span>Tanggal input:</span>
-            <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
+            <span class="text-slate-300">{{ formatDateTime(item.tanggal_gangguan) }}</span>
           </div>
 
           <div class="mt-4 grid gap-2 text-xs text-slate-400">
@@ -75,6 +75,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
 import { listGangguanPublic } from '../services/gangguan';
+import { formatDateTime, parseDateTimeValue } from '../utils/datetime';
 
 const items = ref([]);
 const loading = ref(false);
@@ -106,8 +107,8 @@ const sortedItems = computed(() => {
     const statusDiff = statusPriority(a.status) - statusPriority(b.status);
     if (statusDiff !== 0) return statusDiff;
 
-    const dateA = a.tanggal_gangguan ? new Date(a.tanggal_gangguan).getTime() : 0;
-    const dateB = b.tanggal_gangguan ? new Date(b.tanggal_gangguan).getTime() : 0;
+    const dateA = parseDateTimeValue(a.tanggal_gangguan)?.getTime() || 0;
+    const dateB = parseDateTimeValue(b.tanggal_gangguan)?.getTime() || 0;
     if (dateA !== dateB) return dateB - dateA;
 
     return (b.id || 0) - (a.id || 0);
@@ -118,21 +119,6 @@ const statusDot = (status) => {
   if (status === 'SELESAI') return 'bg-emerald-400';
   if (status === 'PROSES') return 'bg-amber-400';
   return 'bg-rose-400';
-};
-
-const formatDate = (value) => {
-  if (!value) return '-';
-  const [year, month, day] = String(value).split('-');
-  if (!year || !month || !day) return value;
-
-  const formatted = new Date(Number(year), Number(month) - 1, Number(day));
-  if (Number.isNaN(formatted.getTime())) return value;
-
-  return formatted.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
 };
 
 const formatTeamMembers = (value) => {

@@ -85,11 +85,11 @@ class GangguanController extends Controller
         }
 
         $data = $request->validate([
-            'tanggal_gangguan' => ['nullable', 'date'],
+            'tanggal_gangguan' => ['nullable', 'date_format:Y-m-d\TH:i'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
             'jenis_gangguan' => ['required', 'string', 'max:255'],
-            'mulai_pengerjaan' => ['nullable', 'date'],
-            'selesai_pengerjaan' => ['nullable', 'date'],
+            'mulai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'selesai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
             'kendala' => ['nullable', 'string'],
             'tindak_lanjut' => ['nullable', 'string'],
             'tim_bertugas' => ['nullable', 'string', 'max:1000'],
@@ -120,11 +120,11 @@ class GangguanController extends Controller
         }
 
         $data = $request->validate([
-            'tanggal_gangguan' => ['nullable', 'date'],
+            'tanggal_gangguan' => ['nullable', 'date_format:Y-m-d\TH:i'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
             'jenis_gangguan' => ['required', 'string', 'max:255'],
-            'mulai_pengerjaan' => ['nullable', 'date'],
-            'selesai_pengerjaan' => ['nullable', 'date'],
+            'mulai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'selesai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
             'kendala' => ['nullable', 'string'],
             'tindak_lanjut' => ['nullable', 'string'],
             'tim_bertugas' => ['nullable', 'string', 'max:1000'],
@@ -171,7 +171,7 @@ class GangguanController extends Controller
             'tindak_lanjut' => $data['tindak_lanjut'],
             'keterangan' => $data['keterangan'],
             'status' => 'SELESAI',
-            'selesai_pengerjaan' => now()->toDateString(),
+            'selesai_pengerjaan' => now()->format('Y-m-d H:i:s'),
         ]);
 
         return response()->json($gangguan);

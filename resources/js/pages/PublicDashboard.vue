@@ -45,11 +45,11 @@
           </tr>
           <tr v-for="(item, index) in items" :key="item.id" class="odd:bg-slate-950/30">
             <td class="border border-slate-800 px-2 py-2">{{ index + 1 }}</td>
-            <td class="border border-slate-800 px-2 py-2">{{ item.tanggal_gangguan || '-' }}</td>
+            <td class="border border-slate-800 px-2 py-2">{{ formatDateTime(item.tanggal_gangguan) }}</td>
             <td class="border border-slate-800 px-2 py-2">{{ item.lokasi_opd }}</td>
             <td class="border border-slate-800 px-2 py-2">{{ item.jenis_gangguan }}</td>
-            <td class="border border-slate-800 px-2 py-2">{{ item.mulai_pengerjaan || '-' }}</td>
-            <td class="border border-slate-800 px-2 py-2">{{ item.selesai_pengerjaan || '-' }}</td>
+            <td class="border border-slate-800 px-2 py-2">{{ formatDateTime(item.mulai_pengerjaan) }}</td>
+            <td class="border border-slate-800 px-2 py-2">{{ formatDateTime(item.selesai_pengerjaan) }}</td>
             <td class="border border-slate-800 px-2 py-2">{{ item.kendala || '-' }}</td>
             <td class="border border-slate-800 px-2 py-2">{{ item.tindak_lanjut || '-' }}</td>
             <td class="border border-slate-800 px-2 py-2">{{ item.tim_bertugas || '-' }}</td>
@@ -70,6 +70,7 @@
 import { onMounted, ref } from 'vue';
 import { listGangguan } from '../services/gangguan';
 import { getErrorMessage } from '../utils/errors';
+import { formatDateTime } from '../utils/datetime';
 
 const items = ref([]);
 const loading = ref(false);

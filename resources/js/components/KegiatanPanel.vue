@@ -98,7 +98,7 @@
             </p>
             <div class="mt-2 flex items-center justify-between gap-3 text-[11px] text-slate-500">
               <span>Tanggal input:</span>
-              <span class="text-slate-300">{{ formatDate(item.tanggal_gangguan) }}</span>
+              <span class="text-slate-300">{{ formatDateTime(item.tanggal_gangguan) }}</span>
             </div>
 
             <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
@@ -332,7 +332,7 @@
                   <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(viewItem.status)"></span>
                   {{ viewItem.status || 'BELUM DIKERJAKAN' }}
                 </span>
-                <span class="text-sm text-slate-400">{{ formatDate(viewItem.tanggal_gangguan) }}</span>
+                <span class="text-sm text-slate-400">{{ formatDateTime(viewItem.tanggal_gangguan) }}</span>
               </div>
             </div>
 
@@ -348,12 +348,12 @@
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Mulai Pengerjaan</p>
-              <p class="mt-2 text-sm text-white">{{ viewItem.mulai_pengerjaan || '-' }}</p>
+              <p class="mt-2 text-sm text-white">{{ formatDateTime(viewItem.mulai_pengerjaan) }}</p>
             </div>
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
               <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Selesai Pengerjaan</p>
-              <p class="mt-2 text-sm text-white">{{ viewItem.selesai_pengerjaan || '-' }}</p>
+              <p class="mt-2 text-sm text-white">{{ formatDateTime(viewItem.selesai_pengerjaan) }}</p>
             </div>
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
@@ -483,6 +483,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
 import { completeGangguan, deleteGangguan, listGangguan } from '../services/gangguan';
 import { listGangguanDokumen, uploadGangguanDokumen } from '../services/dokumen';
+import { formatDateTime, parseDateTimeValue } from '../utils/datetime';
 
 const props = defineProps({
   refreshKey: {
@@ -592,8 +593,8 @@ const sortedItems = computed(() => {
       if (statusDiff !== 0) return statusDiff;
     }
 
-    const dateA = a.tanggal_gangguan ? new Date(a.tanggal_gangguan).getTime() : 0;
-    const dateB = b.tanggal_gangguan ? new Date(b.tanggal_gangguan).getTime() : 0;
+    const dateA = parseDateTimeValue(a.tanggal_gangguan)?.getTime() || 0;
+    const dateB = parseDateTimeValue(b.tanggal_gangguan)?.getTime() || 0;
     if (dateA !== dateB) return dateB - dateA;
 
     return (b.id || 0) - (a.id || 0);
@@ -691,21 +692,6 @@ const getImageFormat = (mimeType, url) => {
   return 'JPEG';
 };
 
-const formatPdfDate = (value) => {
-  if (!value) return '-';
-  const [year, month, day] = String(value).split('-');
-  if (!year || !month || !day) return String(value);
-
-  const formatted = new Date(Number(year), Number(month) - 1, Number(day));
-  if (Number.isNaN(formatted.getTime())) return String(value);
-
-  return formatted.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-};
-
 const statusBadgeColor = (status) => {
   const value = (status || '').toUpperCase();
   if (value === 'SELESAI') return { fill: [34, 197, 94], text: [255, 255, 255] };
@@ -772,7 +758,7 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
   doc.text(normalizeText(item.jenis_gangguan), pageWidth / 2, y + 11.5, { align: 'center' });
   doc.setFont('times', 'normal');
   doc.setFontSize(10.5);
-  doc.text(formatPdfDate(item.tanggal_gangguan), pageWidth / 2, y + 16.5, { align: 'center' });
+  doc.text(formatDateTime(item.tanggal_gangguan), pageWidth / 2, y + 16.5, { align: 'center' });
   y += titleBoxH + 4;
 
   const row1 = Math.max(
