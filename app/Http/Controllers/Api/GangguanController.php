@@ -57,7 +57,9 @@ class GangguanController extends Controller
             ->get();
 
         if ($user && $user->role === 'user') {
-            $items = $items->filter(fn (Gangguan $gangguan) => $this->isAssignedToUser($gangguan, $user))->values();
+            $items = $items
+                ->filter(fn (Gangguan $gangguan) => $this->isAssignedToUser($gangguan, $user))
+                ->values();
         }
 
         return response()->json($items);
@@ -107,6 +109,16 @@ class GangguanController extends Controller
      */
     public function show(Gangguan $gangguan)
     {
+        $user = request()->user();
+
+        if ($user && $user->role === 'user' && !$this->isAssignedToUser($gangguan, $user)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        if ($user && $user->role === 'user') {
+            return response()->json($gangguan);
+        }
+
         return response()->json($gangguan);
     }
 
@@ -166,12 +178,14 @@ class GangguanController extends Controller
             'keterangan' => ['required', 'string'],
         ]);
 
+        $completedAt = now()->format('Y-m-d H:i:s');
+
         $gangguan->update([
             'kendala' => $data['kendala'],
             'tindak_lanjut' => $data['tindak_lanjut'],
             'keterangan' => $data['keterangan'],
             'status' => 'SELESAI',
-            'selesai_pengerjaan' => now()->format('Y-m-d H:i:s'),
+            'selesai_pengerjaan' => $completedAt,
         ]);
 
         return response()->json($gangguan);

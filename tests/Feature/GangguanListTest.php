@@ -44,4 +44,53 @@ class GangguanListTest extends TestCase
             'lokasi_opd' => 'OPD B',
         ]);
     }
+
+    public function test_completed_gangguan_edit_by_admin_is_visible_to_user(): void
+    {
+        $user = User::factory()->create([
+            'role' => 'user',
+        ]);
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $gangguan = Gangguan::create([
+            'tanggal_gangguan' => now()->toDateString(),
+            'lokasi_opd' => 'OPD Awal',
+            'jenis_gangguan' => 'Internet Down',
+            'status' => 'PROSES',
+            'tim_bertugas' => $user->name.'::'.$user->id,
+        ]);
+
+        $this->actingAs($user)->postJson("/api/gangguan/{$gangguan->id}/complete", [
+            'kendala' => 'Kendala awal',
+            'tindak_lanjut' => 'Solusi awal',
+            'keterangan' => 'Catatan awal',
+        ])->assertOk();
+
+        $this->actingAs($admin)->putJson("/api/gangguan/{$gangguan->id}", [
+            'tanggal_gangguan' => now()->format('Y-m-d\TH:i'),
+            'lokasi_opd' => 'OPD Edit Admin',
+            'jenis_gangguan' => 'Internet Down - Revisi',
+            'mulai_pengerjaan' => now()->format('Y-m-d\TH:i'),
+            'selesai_pengerjaan' => now()->format('Y-m-d\TH:i'),
+            'kendala' => 'Kendala admin',
+            'tindak_lanjut' => 'Solusi admin',
+            'tim_bertugas' => $user->name.'::'.$user->id,
+            'status' => 'SELESAI',
+            'keterangan' => 'Catatan admin',
+        ])->assertOk();
+
+        $response = $this->actingAs($user)->getJson('/api/gangguan');
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'id' => $gangguan->id,
+            'lokasi_opd' => 'OPD Edit Admin',
+            'jenis_gangguan' => 'Internet Down - Revisi',
+            'kendala' => 'Kendala admin',
+            'keterangan' => 'Catatan admin',
+        ]);
+    }
 }
