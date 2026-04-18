@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Gangguan;
 use App\Models\GangguanDokumen;
-use App\Services\GangguanDocumentStorageService;
+use App\Services\KegiatanJaringanDocumentStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Schema;
 
-class GangguanDokumenController extends Controller
+class KegiatanJaringanDokumenController extends Controller
 {
     private function teamMembers(?string $timBertugas): array
     {
@@ -135,7 +135,7 @@ class GangguanDokumenController extends Controller
     /**
      * Store a newly uploaded document.
      */
-    public function store(Request $request, Gangguan $gangguan, GangguanDocumentStorageService $storageService)
+    public function store(Request $request, Gangguan $gangguan, KegiatanJaringanDocumentStorageService $storageService)
     {
         $actor = $request->user();
 

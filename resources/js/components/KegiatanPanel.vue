@@ -4,7 +4,7 @@
       <div>
         <h2 class="text-base font-semibold text-white sm:text-lg">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
         <p class="mt-1 text-xs text-slate-400 sm:text-sm">
-          {{ canManage ? 'Kelola laporan gangguan jaringan.' : 'Lihat kegiatan yang ditugaskan kepada Anda.' }}
+          {{ canManage ? 'Kelola data kegiatan jaringan.' : 'Lihat kegiatan yang ditugaskan kepada Anda.' }}
         </p>
       </div>
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
@@ -337,7 +337,7 @@
             </div>
 
             <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-4">
-              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Jenis Gangguan</p>
+              <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Jenis Kegiatan</p>
               <p class="mt-2 text-sm text-white">{{ viewItem.jenis_gangguan || '-' }}</p>
             </div>
 
@@ -481,8 +481,8 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { completeGangguan, deleteGangguan, getGangguan, listGangguan } from '../services/gangguan';
-import { listGangguanDokumen, uploadGangguanDokumen } from '../services/dokumen';
+import { completeGangguan, deleteGangguan, getGangguan, listGangguan } from '../services/kegiatan-jaringan';
+import { listGangguanDokumen, uploadGangguanDokumen } from '../services/kegiatan-jaringan-dokumen';
 import { formatDateTime, parseDateTimeValue } from '../utils/datetime';
 
 const props = defineProps({

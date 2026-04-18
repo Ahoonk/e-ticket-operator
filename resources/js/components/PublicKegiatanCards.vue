@@ -74,7 +74,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { listGangguanPublic } from '../services/gangguan';
+import { listGangguanPublic } from '../services/kegiatan-jaringan';
 import { formatDateTime, parseDateTimeValue } from '../utils/datetime';
 
 const items = ref([]);

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-class GangguanDocumentStorageService
+class KegiatanJaringanDocumentStorageService
 {
     public function upload(UploadedFile $file, string $directory): array
     {

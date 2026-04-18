@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Gangguan;
 use Illuminate\Http\Request;
 
-class GangguanController extends Controller
+class KegiatanJaringanController extends Controller
 {
     private function teamMembers(?string $timBertugas): array
     {

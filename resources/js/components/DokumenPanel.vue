@@ -110,7 +110,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { deleteDokumen, listDokumen } from '../services/dokumen';
+import { deleteDokumen, listDokumen } from '../services/kegiatan-jaringan-dokumen';
 import { formatDateTime } from '../utils/datetime';
 
 const props = defineProps({

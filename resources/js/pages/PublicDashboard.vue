@@ -2,9 +2,9 @@
   <section class="rounded-2xl border border-slate-800 bg-slate-950/40 p-6">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold text-white">Daftar Gangguan Jaringan</h2>
+        <h2 class="text-xl font-semibold text-white">Daftar Kegiatan Jaringan</h2>
         <p class="mt-1 text-sm text-slate-400">
-          Data gangguan tampil di sini. Input hanya tersedia setelah login.
+          Data kegiatan tampil di sini. Input hanya tersedia setelah login.
         </p>
       </div>
       <button
@@ -24,9 +24,9 @@
         <thead class="bg-slate-900/80 text-slate-200">
           <tr>
             <th class="border border-slate-800 px-2 py-2 text-left">No</th>
-            <th class="border border-slate-800 px-2 py-2 text-left">Tanggal Gangguan</th>
+            <th class="border border-slate-800 px-2 py-2 text-left">Tanggal Kegiatan</th>
             <th class="border border-slate-800 px-2 py-2 text-left">Lokasi/OPD</th>
-            <th class="border border-slate-800 px-2 py-2 text-left">Jenis Gangguan</th>
+            <th class="border border-slate-800 px-2 py-2 text-left">Jenis Kegiatan</th>
             <th class="border border-slate-800 px-2 py-2 text-left">Mulai Pengerjaan</th>
             <th class="border border-slate-800 px-2 py-2 text-left">Selesai Pekerjaan</th>
             <th class="border border-slate-800 px-2 py-2 text-left">Kendala</th>
@@ -68,7 +68,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
-import { listGangguan } from '../services/gangguan';
+import { listGangguan } from '../services/kegiatan-jaringan';
 import { getErrorMessage } from '../utils/errors';
 import { formatDateTime } from '../utils/datetime';
 
@@ -82,7 +82,7 @@ const load = async () => {
   try {
     items.value = await listGangguan();
   } catch (err) {
-    error.value = getErrorMessage(err, 'Gagal memuat data gangguan.');
+    error.value = getErrorMessage(err, 'Gagal memuat data kegiatan.');
   } finally {
     loading.value = false;
   }

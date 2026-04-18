@@ -61,7 +61,7 @@
         </div>
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
-        Jenis Gangguan
+        Jenis Kegiatan
         <input v-model="form.jenis_gangguan" class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2" required />
       </label>
       <label class="grid gap-2 text-sm text-slate-300">
@@ -171,7 +171,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { createGangguan, updateGangguan } from '../services/gangguan';
+import { createGangguan, updateGangguan } from '../services/kegiatan-jaringan';
 import { listAnggota } from '../services/anggota';
 import { listOpd } from '../services/opd';
 import { toDateTimeLocalValue } from '../utils/datetime';
