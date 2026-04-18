@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Gangguan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class KegiatanJaringanController extends Controller
@@ -43,6 +44,30 @@ class KegiatanJaringanController extends Controller
         }
 
         return false;
+    }
+
+    private function normalizeDateTimeFields(array $data, ?Gangguan $existing = null): array
+    {
+        foreach (['tanggal_gangguan', 'mulai_pengerjaan', 'selesai_pengerjaan'] as $field) {
+            if (array_key_exists($field, $data)) {
+                if (filled($data[$field])) {
+                    $data[$field] = Carbon::parse($data[$field])->format('Y-m-d H:i:s');
+                } else {
+                    $data[$field] = null;
+                }
+
+                continue;
+            }
+
+            if ($existing) {
+                $data[$field] = $existing->{$field};
+                continue;
+            }
+
+            $data[$field] = null;
+        }
+
+        return $data;
     }
 
     /**
@@ -87,11 +112,11 @@ class KegiatanJaringanController extends Controller
         }
 
         $data = $request->validate([
-            'tanggal_gangguan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'tanggal_gangguan' => ['nullable', 'date'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
             'jenis_gangguan' => ['required', 'string', 'max:255'],
-            'mulai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
-            'selesai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'mulai_pengerjaan' => ['nullable', 'date'],
+            'selesai_pengerjaan' => ['nullable', 'date'],
             'kendala' => ['nullable', 'string'],
             'tindak_lanjut' => ['nullable', 'string'],
             'tim_bertugas' => ['nullable', 'string', 'max:1000'],
@@ -99,7 +124,9 @@ class KegiatanJaringanController extends Controller
             'keterangan' => ['nullable', 'string'],
         ]);
 
-        $item = Gangguan::create($data);
+        $data = $this->normalizeDateTimeFields($data);
+
+        $item = Gangguan::create($data)->fresh();
 
         return response()->json($item, 201);
     }
@@ -132,11 +159,11 @@ class KegiatanJaringanController extends Controller
         }
 
         $data = $request->validate([
-            'tanggal_gangguan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'tanggal_gangguan' => ['nullable', 'date'],
             'lokasi_opd' => ['required', 'string', 'max:255'],
             'jenis_gangguan' => ['required', 'string', 'max:255'],
-            'mulai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
-            'selesai_pengerjaan' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            'mulai_pengerjaan' => ['nullable', 'date'],
+            'selesai_pengerjaan' => ['nullable', 'date'],
             'kendala' => ['nullable', 'string'],
             'tindak_lanjut' => ['nullable', 'string'],
             'tim_bertugas' => ['nullable', 'string', 'max:1000'],
@@ -144,9 +171,11 @@ class KegiatanJaringanController extends Controller
             'keterangan' => ['nullable', 'string'],
         ]);
 
+        $data = $this->normalizeDateTimeFields($data, $gangguan);
+
         $gangguan->update($data);
 
-        return response()->json($gangguan);
+        return response()->json($gangguan->fresh());
     }
 
     /**
@@ -188,7 +217,7 @@ class KegiatanJaringanController extends Controller
             'selesai_pengerjaan' => $completedAt,
         ]);
 
-        return response()->json($gangguan);
+        return response()->json($gangguan->fresh());
     }
 
     /**

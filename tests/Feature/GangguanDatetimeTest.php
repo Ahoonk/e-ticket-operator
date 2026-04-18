@@ -28,16 +28,16 @@ class GangguanDatetimeTest extends TestCase
         ]);
 
         $response->assertCreated();
-        $response->assertJsonPath('tanggal_gangguan', '2026-04-16T09:15');
-        $response->assertJsonPath('mulai_pengerjaan', '2026-04-16T09:30');
-        $response->assertJsonPath('selesai_pengerjaan', '2026-04-16T10:45');
+        $response->assertJsonPath('tanggal_gangguan', '2026-04-16 09:15:00');
+        $response->assertJsonPath('mulai_pengerjaan', '2026-04-16 09:30:00');
+        $response->assertJsonPath('selesai_pengerjaan', '2026-04-16 10:45:00');
 
         $this->assertDatabaseHas('gangguans', [
             'lokasi_opd' => 'OPD A',
             'jenis_gangguan' => 'Internet Down',
-            'tanggal_gangguan' => '2026-04-16T09:15',
-            'mulai_pengerjaan' => '2026-04-16T09:30',
-            'selesai_pengerjaan' => '2026-04-16T10:45',
+            'tanggal_gangguan' => '2026-04-16 09:15:00',
+            'mulai_pengerjaan' => '2026-04-16 09:30:00',
+            'selesai_pengerjaan' => '2026-04-16 10:45:00',
         ]);
     }
 
@@ -76,5 +76,48 @@ class GangguanDatetimeTest extends TestCase
         } finally {
             Carbon::setTestNow();
         }
+    }
+
+    public function test_admin_can_update_datetime_fields_on_completed_gangguan(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'user',
+        ]);
+
+        $gangguan = Gangguan::create([
+            'tanggal_gangguan' => '2026-04-16T09:15',
+            'lokasi_opd' => 'OPD A',
+            'jenis_gangguan' => 'Internet Down',
+            'mulai_pengerjaan' => '2026-04-16T09:30',
+            'selesai_pengerjaan' => '2026-04-16T10:45',
+            'status' => 'SELESAI',
+            'tim_bertugas' => $user->name.'::'.$user->id,
+        ]);
+
+        $response = $this->actingAs($admin)->putJson("/api/gangguan/{$gangguan->id}", [
+            'tanggal_gangguan' => '2026-04-16T11:00',
+            'lokasi_opd' => 'OPD A',
+            'jenis_gangguan' => 'Internet Down',
+            'mulai_pengerjaan' => '2026-04-16T11:15',
+            'selesai_pengerjaan' => '2026-04-16T12:00',
+            'status' => 'SELESAI',
+            'tim_bertugas' => $user->name.'::'.$user->id,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonPath('tanggal_gangguan', '2026-04-16 11:00:00');
+        $response->assertJsonPath('mulai_pengerjaan', '2026-04-16 11:15:00');
+        $response->assertJsonPath('selesai_pengerjaan', '2026-04-16 12:00:00');
+
+        $this->assertDatabaseHas('gangguans', [
+            'id' => $gangguan->id,
+            'tanggal_gangguan' => '2026-04-16 11:00:00',
+            'mulai_pengerjaan' => '2026-04-16 11:15:00',
+            'selesai_pengerjaan' => '2026-04-16 12:00:00',
+        ]);
     }
 }
