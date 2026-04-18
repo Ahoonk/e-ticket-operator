@@ -93,4 +93,52 @@ class GangguanListTest extends TestCase
             'keterangan' => 'Catatan admin',
         ]);
     }
+
+    public function test_superadmin_sees_latest_gangguan_detail_after_admin_edit(): void
+    {
+        $superadmin = User::factory()->create([
+            'role' => 'superadmin',
+        ]);
+
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $gangguan = Gangguan::create([
+            'tanggal_gangguan' => now()->format('Y-m-d\TH:i'),
+            'lokasi_opd' => 'OPD Awal',
+            'jenis_gangguan' => 'Internet Down',
+            'mulai_pengerjaan' => now()->format('Y-m-d\TH:i'),
+            'selesai_pengerjaan' => now()->format('Y-m-d\TH:i'),
+            'kendala' => 'Kendala awal',
+            'tindak_lanjut' => 'Solusi awal',
+            'tim_bertugas' => 'Tim A',
+            'status' => 'SELESAI',
+            'keterangan' => 'Catatan awal',
+        ]);
+
+        $this->actingAs($admin)->putJson("/api/gangguan/{$gangguan->id}", [
+            'tanggal_gangguan' => now()->addDay()->format('Y-m-d\TH:i'),
+            'lokasi_opd' => 'OPD Edit Admin',
+            'jenis_gangguan' => 'Internet Down - Revisi',
+            'mulai_pengerjaan' => now()->addDay()->format('Y-m-d\TH:i'),
+            'selesai_pengerjaan' => now()->addDay()->format('Y-m-d\TH:i'),
+            'kendala' => 'Kendala admin',
+            'tindak_lanjut' => 'Solusi admin',
+            'tim_bertugas' => 'Tim B',
+            'status' => 'SELESAI',
+            'keterangan' => 'Catatan admin',
+        ])->assertOk();
+
+        $response = $this->actingAs($superadmin)->getJson("/api/gangguan/{$gangguan->id}");
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'id' => $gangguan->id,
+            'lokasi_opd' => 'OPD Edit Admin',
+            'jenis_gangguan' => 'Internet Down - Revisi',
+            'kendala' => 'Kendala admin',
+            'keterangan' => 'Catatan admin',
+        ]);
+    }
 }

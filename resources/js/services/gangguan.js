@@ -5,6 +5,11 @@ export async function listGangguan() {
     return data;
 }
 
+export async function getGangguan(id) {
+    const { data } = await api.get(`/gangguan/${id}`);
+    return data;
+}
+
 export async function listGangguanPublic(params = {}) {
     const { data } = await api.get('/gangguan-public', { params });
     return data;

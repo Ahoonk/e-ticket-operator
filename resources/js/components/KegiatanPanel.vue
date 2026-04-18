@@ -481,7 +481,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { getErrorMessage } from '../utils/errors';
-import { completeGangguan, deleteGangguan, listGangguan } from '../services/gangguan';
+import { completeGangguan, deleteGangguan, getGangguan, listGangguan } from '../services/gangguan';
 import { listGangguanDokumen, uploadGangguanDokumen } from '../services/dokumen';
 import { formatDateTime, parseDateTimeValue } from '../utils/datetime';
 
@@ -892,9 +892,16 @@ const confirmExport = async () => {
   }
 };
 
-const openView = (item) => {
-  viewItem.value = item;
+const openView = async (item) => {
   showViewModal.value = true;
+  viewItem.value = item;
+
+  try {
+    const latestItem = await getGangguan(item.id);
+    viewItem.value = latestItem;
+  } catch (err) {
+    error.value = getErrorMessage(err, 'Gagal memuat detail kegiatan terbaru.');
+  }
 };
 
 const closeView = () => {
