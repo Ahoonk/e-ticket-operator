@@ -859,17 +859,11 @@ const confirmExport = async () => {
     const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const documentsByGangguan = new Map();
-    const isUserRole = props.currentUser?.role === 'user';
 
     await Promise.all(rows.map(async (item) => {
       try {
         const documents = await listGangguanDokumen(item.id);
-        documentsByGangguan.set(
-          item.id,
-          isUserRole
-            ? documents.filter((document) => Number(document.uploader?.id) === Number(props.currentUser?.id))
-            : documents,
-        );
+        documentsByGangguan.set(item.id, documents);
       } catch (err) {
         documentsByGangguan.set(item.id, []);
       }
