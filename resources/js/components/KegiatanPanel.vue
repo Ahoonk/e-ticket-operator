@@ -127,7 +127,96 @@
       </div>
 
       <div v-else class="h-full overflow-y-auto pr-1">
-        <div class="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+        <div class="grid gap-2 sm:hidden">
+          <article
+            v-for="(item, index) in sortedItems"
+            :key="`mobile-${item.id}`"
+            class="rounded-2xl border border-slate-800 bg-slate-950/40 p-3"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-2 rounded-full border border-slate-700 px-2.5 py-1 text-[10px] text-slate-200">
+                    <span class="h-2 w-2 rounded-full" :class="statusDot(item.status)"></span>
+                    {{ item.status || 'BELUM DIKERJAKAN' }}
+                  </span>
+                </div>
+                <h3 class="mt-2 line-clamp-2 text-sm font-semibold leading-snug text-white">
+                  {{ item.jenis_gangguan || 'Tanpa judul' }}
+                </h3>
+                <p class="mt-1 line-clamp-1 text-[11px] text-slate-400">
+                  {{ item.lokasi_opd || '-' }}
+                </p>
+                <p class="mt-2 text-[11px] text-slate-500">
+                  {{ formatDateTime(item.tanggal_gangguan) }}
+                </p>
+              </div>
+              <span class="shrink-0 text-[10px] text-slate-500">#{{ index + 1 }}</span>
+            </div>
+
+            <div class="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 text-slate-200 hover:border-slate-500"
+                @click="openView(item)"
+                aria-label="Lihat"
+                title="Lihat"
+              >
+                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M10 4.5c-4.5 0-8 4.5-8 5.5s3.5 5.5 8 5.5 8-4.5 8-5.5-3.5-5.5-8-5.5zm0 9a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"></path>
+                  <circle cx="10" cy="10" r="2"></circle>
+                </svg>
+              </button>
+
+              <template v-if="canManage">
+                <button
+                  type="button"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 text-slate-200 hover:border-slate-500"
+                  @click="emit('edit', item)"
+                  aria-label="Edit"
+                  title="Edit"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M4 13.5V16h2.5l7.1-7.1-2.5-2.5L4 13.5z"></path>
+                    <path d="M14.7 3.3a1 1 0 0 1 1.4 0l1.6 1.6a1 1 0 0 1 0 1.4l-1.1 1.1-2.5-2.5 1.1-1.1z"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-rose-500/40 text-rose-200 hover:border-rose-400"
+                  @click="remove(item.id)"
+                  aria-label="Hapus"
+                  title="Hapus"
+                >
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M6 7h8l-1 9H7L6 7z"></path>
+                    <path d="M8 4h4l1 1h3v2H4V5h3l1-1z"></path>
+                  </svg>
+                </button>
+              </template>
+              <template v-else>
+                <button
+                  v-if="canComplete && item.status === 'PROSES'"
+                  type="button"
+                  class="inline-flex h-9 items-center justify-center rounded-lg bg-emerald-500 px-3 text-xs font-semibold text-slate-950 hover:bg-emerald-400"
+                  @click="openComplete(item)"
+                >
+                  Selesai
+                </button>
+                <button
+                  v-if="canUpload"
+                  type="button"
+                  class="inline-flex h-9 items-center justify-center rounded-lg border border-sky-500/40 px-3 text-xs text-sky-200 hover:border-sky-400"
+                  @click="openDocumentModal(item)"
+                >
+                  Upload
+                </button>
+              </template>
+            </div>
+          </article>
+        </div>
+
+        <div class="hidden gap-3 sm:grid sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           <div
             v-for="(item, index) in sortedItems"
             :key="item.id"
