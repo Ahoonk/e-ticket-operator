@@ -52,7 +52,7 @@
       {{ error }}
     </div>
 
-    <div class="mt-4 flex flex-col gap-3 sm:mt-5 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+    <div class="mt-4 hidden flex-col gap-3 sm:mt-5 sm:flex sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
         <input
           v-model="search"
@@ -77,6 +77,43 @@
       <p class="text-xs text-slate-400 sm:text-right">Total: {{ filteredItems.length }}</p>
     </div>
 
+    <div class="mt-4 flex items-center justify-between gap-3 sm:hidden">
+      <button
+        type="button"
+        class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-700 px-3 text-xs font-medium text-slate-200 hover:border-slate-500"
+        @click="showMobileFilters = !showMobileFilters"
+        :aria-label="showMobileFilters ? 'Tutup filter' : 'Buka filter'"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M3 4h14v2H3V4zm3 5h8v2H6V9zm2 5h4v2H8v-2z"></path>
+        </svg>
+        <span>{{ showMobileFilters ? 'Tutup Filter' : 'Filter' }}</span>
+      </button>
+      <p class="text-xs text-slate-400">Total: {{ filteredItems.length }}</p>
+    </div>
+
+    <div v-if="showMobileFilters" class="mt-3 grid gap-2 rounded-xl border border-slate-800 bg-slate-950/40 p-3 sm:hidden">
+      <input
+        v-model="search"
+        placeholder="Cari kegiatan..."
+        class="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100 placeholder:text-slate-500"
+      />
+      <select
+        v-model="statusFilter"
+        class="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100"
+      >
+        <option value="all">Semua Status</option>
+        <option v-for="status in statusOptions" :key="status" :value="status">{{ status }}</option>
+      </select>
+      <select
+        v-model="sortBy"
+        class="w-full rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2 text-xs text-slate-100"
+      >
+        <option value="latest">Tanggal input terbaru</option>
+        <option value="status">Status pekerjaan</option>
+      </select>
+    </div>
+
     <div v-if="loading" class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-6 text-sm text-slate-300">
       Memuat data...
     </div>
@@ -94,7 +131,7 @@
           <div
             v-for="(item, index) in sortedItems"
             :key="item.id"
-            class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-4 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700 sm:p-5"
+            class="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/40 p-3 shadow-[0_0_0_1px_rgba(15,23,42,0.4)] transition hover:-translate-y-1 hover:border-slate-700 sm:p-5"
           >
             <div class="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl"></div>
             <div class="flex items-center justify-between gap-2">
@@ -102,7 +139,7 @@
                 <span class="h-2.5 w-2.5 rounded-full" :class="statusDot(item.status)"></span>
                 {{ item.status || 'BELUM DIKERJAKAN' }}
               </span>
-              <span class="text-xs text-slate-500 sm:text-xs">No {{ index + 1 }}</span>
+              <span class="hidden text-xs text-slate-500 sm:text-xs">No {{ index + 1 }}</span>
             </div>
 
             <h3 class="mt-4 text-sm font-semibold text-white sm:text-base">
@@ -116,7 +153,7 @@
               <span class="text-slate-300">{{ formatDateTime(item.tanggal_gangguan) }}</span>
             </div>
 
-            <div class="mt-3 grid gap-2 text-[11px] text-slate-400 sm:mt-4 sm:text-xs">
+            <div class="mt-3 hidden gap-2 text-[11px] text-slate-400 sm:mt-4 sm:grid sm:text-xs">
               <div>
                 <span class="text-slate-500">Keterangan:</span>
                 <span class="ml-1 text-slate-200">{{ item.keterangan || '-' }}</span>
@@ -532,6 +569,7 @@ const statusOptions = ['BELUM DIKERJAKAN', 'PROSES', 'SELESAI'];
 const search = ref('');
 const statusFilter = ref('all');
 const sortBy = ref('latest');
+const showMobileFilters = ref(false);
 const showExportModal = ref(false);
 const exportLoading = ref(false);
 const exportError = ref(null);

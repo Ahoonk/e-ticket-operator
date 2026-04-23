@@ -8,8 +8,8 @@
     <main class="relative mx-auto flex h-full w-full max-w-[1400px] flex-col gap-4 overflow-hidden px-3 py-4 sm:gap-8 sm:px-6 sm:py-10 lg:gap-10 lg:px-8 lg:py-12">
       <header>
         <p class="text-[11px] uppercase tracking-[0.2em] text-emerald-300/70 sm:text-sm sm:tracking-[0.3em]">Kegiatan Jaringan : LIVE REPORT</p>
-        <h1 class="mt-1 text-xl font-semibold text-white sm:mt-2 sm:text-3xl lg:text-4xl">Kegiatan Tim TA Operator Komputer</h1>
-        <p class="mt-1 max-w-2xl text-xs text-slate-300 sm:mt-2 sm:text-base">
+        <h1 class="mt-1 text-lg font-semibold leading-tight text-white sm:mt-2 sm:text-3xl lg:text-4xl">Kegiatan Tim TA Operator Komputer</h1>
+        <p class="mt-1 hidden max-w-2xl text-xs text-slate-300 sm:mt-2 sm:block sm:text-base">
           Pantau Pekerjaan Tim Secara Real Time
         </p>
       </header>
