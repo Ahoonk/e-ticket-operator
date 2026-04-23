@@ -783,9 +783,16 @@ const exportItems = computed(() => {
     ? [...items.value]
     : items.value.filter((item) => (item.status || '').toUpperCase() === exportStatusChoice.value);
 
+  const getExportTimestamp = (item) => (
+    parseDateTimeValue(item.tanggal_gangguan)?.getTime()
+    || parseDateTimeValue(item.mulai_pengerjaan)?.getTime()
+    || parseDateTimeValue(item.selesai_pengerjaan)?.getTime()
+    || 0
+  );
+
   return rows.sort((a, b) => {
-    const dateA = parseDateTimeValue(a.tanggal_gangguan)?.getTime() || 0;
-    const dateB = parseDateTimeValue(b.tanggal_gangguan)?.getTime() || 0;
+    const dateA = getExportTimestamp(a);
+    const dateB = getExportTimestamp(b);
     if (dateA !== dateB) return dateA - dateB;
 
     return (a.id || 0) - (b.id || 0);
