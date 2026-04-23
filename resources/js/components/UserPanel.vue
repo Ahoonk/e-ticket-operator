@@ -245,15 +245,21 @@ const closeModal = () => {
 const submit = async () => {
   error.value = null;
   try {
+    const payload = { ...form.value };
+
     if (props.currentUser?.role === 'admin' && form.value.role === 'superadmin') {
       error.value = 'Admin hanya dapat membuat akun admin atau user.';
       return;
     }
 
+    if (editingId.value && !String(payload.password || '').trim()) {
+      delete payload.password;
+    }
+
     if (editingId.value) {
-      await updateUser(editingId.value, { ...form.value });
+      await updateUser(editingId.value, payload);
     } else {
-      await createUser({ ...form.value });
+      await createUser(payload);
     }
     closeModal();
     await load();

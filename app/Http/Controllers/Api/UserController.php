@@ -117,13 +117,18 @@ class UserController extends Controller
 
         $allowedRoles = $this->allowedRolesFor($actor);
 
-        $data = $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', Rule::in($allowedRoles)],
             'telepon' => ['nullable', 'string', 'max:50'],
-        ]);
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = ['string', 'min:6'];
+        }
+
+        $data = $request->validate($rules);
 
         $updatedUser = DB::transaction(function () use ($user, $data) {
             $previousRole = $user->role;
