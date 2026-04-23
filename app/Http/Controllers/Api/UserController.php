@@ -66,6 +66,9 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', Rule::in($allowedRoles)],
             'telepon' => ['nullable', 'string', 'max:50'],
+        ], [
+            'password.required' => 'Password wajib diisi.',
+            'password.min.string' => 'Password minimal 6 karakter.',
         ]);
 
         $user = DB::transaction(function () use ($data) {
@@ -128,7 +131,9 @@ class UserController extends Controller
             $rules['password'] = ['string', 'min:6'];
         }
 
-        $data = $request->validate($rules);
+        $data = $request->validate($rules, [
+            'password.min.string' => 'Password minimal 6 karakter.',
+        ]);
 
         $updatedUser = DB::transaction(function () use ($user, $data) {
             $previousRole = $user->role;

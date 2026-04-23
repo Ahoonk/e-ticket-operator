@@ -126,8 +126,14 @@
               v-model="form.password"
               type="password"
               class="rounded-lg border border-slate-700 bg-slate-900/60 px-3 py-2"
+              autocomplete="new-password"
+              minlength="6"
               :required="!isEditing"
+              :placeholder="isEditing ? 'Kosongkan jika tidak diubah' : 'Minimal 6 karakter'"
             />
+            <span class="text-xs text-slate-500">
+              {{ isEditing ? 'Isi hanya jika ingin mengganti password.' : 'Password minimal 6 karakter.' }}
+            </span>
           </label>
           <label class="grid gap-2 text-sm text-slate-300">
             Role
@@ -216,11 +222,13 @@ const resetForm = () => {
 };
 
 const openCreate = () => {
+  error.value = null;
   resetForm();
   showModal.value = true;
 };
 
 const startEdit = (item) => {
+  error.value = null;
   if (props.currentUser?.role === 'admin' && item.role === 'superadmin') {
     error.value = 'Admin tidak dapat mengubah akun superadmin.';
     return;
@@ -239,6 +247,7 @@ const startEdit = (item) => {
 
 const closeModal = () => {
   showModal.value = false;
+  error.value = null;
   resetForm();
 };
 
@@ -254,6 +263,11 @@ const submit = async () => {
 
     if (editingId.value && !String(payload.password || '').trim()) {
       delete payload.password;
+    }
+
+    if (String(payload.password || '').trim() && String(payload.password).trim().length < 6) {
+      error.value = 'Password minimal 6 karakter.';
+      return;
     }
 
     if (editingId.value) {
