@@ -779,11 +779,17 @@ const closeExportModal = () => {
 };
 
 const exportItems = computed(() => {
-  if (exportStatusChoice.value === 'all') {
-    return [...items.value];
-  }
+  const rows = exportStatusChoice.value === 'all'
+    ? [...items.value]
+    : items.value.filter((item) => (item.status || '').toUpperCase() === exportStatusChoice.value);
 
-  return items.value.filter((item) => (item.status || '').toUpperCase() === exportStatusChoice.value);
+  return rows.sort((a, b) => {
+    const dateA = parseDateTimeValue(a.tanggal_gangguan)?.getTime() || 0;
+    const dateB = parseDateTimeValue(b.tanggal_gangguan)?.getTime() || 0;
+    if (dateA !== dateB) return dateA - dateB;
+
+    return (a.id || 0) - (b.id || 0);
+  });
 });
 
 const normalizeText = (value) => {
