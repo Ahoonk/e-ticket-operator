@@ -3,32 +3,47 @@
     <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div>
         <h2 class="text-base font-semibold text-white sm:text-lg">{{ canManage ? 'Daftar Kegiatan' : 'Kegiatan Saya' }}</h2>
-        <p class="mt-1 text-xs text-slate-400 sm:text-sm">
+        <p class="mt-1 hidden text-xs text-slate-400 sm:block sm:text-sm">
           {{ canManage ? 'Kelola data kegiatan jaringan.' : 'Lihat kegiatan yang ditugaskan kepada Anda.' }}
         </p>
       </div>
       <div class="flex w-full flex-wrap gap-2 sm:w-auto">
         <button
           type="button"
-          class="w-full rounded-lg border border-sky-500/40 px-3 py-2 text-sm text-sky-200 hover:border-sky-400 sm:w-auto sm:py-1"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-sky-500/40 text-sky-200 hover:border-sky-400 sm:h-auto sm:w-auto sm:px-3 sm:py-1 sm:text-sm"
           @click="openExportModal"
+          aria-label="Export PDF"
+          title="Export PDF"
         >
-          Export PDF
+          <svg class="h-4 w-4 sm:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M6 2h8l4 4v12H6V2zm8 1.5V6h2.5L14 3.5zM8 9h4v1.5H8V9zm0 3h4v1.5H8V12z"></path>
+          </svg>
+          <span class="hidden sm:inline">Export PDF</span>
         </button>
         <button
           type="button"
-          class="w-full rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-300 hover:border-slate-500 sm:w-auto sm:py-1"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-lg border border-slate-700 text-slate-300 hover:border-slate-500 sm:h-auto sm:w-auto sm:px-3 sm:py-1 sm:text-sm"
           @click="load"
+          aria-label="Refresh"
+          title="Refresh"
         >
-          Refresh
+          <svg class="h-4 w-4 sm:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M4 4h4v2H6.8A5 5 0 0 1 15 8.6l1.7-1V12h-4.3l1.4-1.4A5 5 0 0 0 6 8.2H4V4zm12 12h-4v-2h1.2A5 5 0 0 1 5 11.4l-1.7 1V8h4.3L6.2 9.4A5 5 0 0 0 14 11.8h2v4z"></path>
+          </svg>
+          <span class="hidden sm:inline">Refresh</span>
         </button>
         <button
           v-if="canManage"
           type="button"
-          class="w-full rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400 sm:w-auto sm:py-1"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 sm:h-auto sm:w-auto sm:px-3 sm:py-1 sm:text-sm sm:font-semibold"
           @click="emit('create')"
+          aria-label="Buat Kegiatan"
+          title="Buat Kegiatan"
         >
-          Buat Kegiatan
+          <svg class="h-4 w-4 sm:hidden" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M9 3h2v6h6v2h-6v6H9v-6H3V9h6V3z"></path>
+          </svg>
+          <span class="hidden sm:inline">Buat Kegiatan</span>
         </button>
       </div>
     </div>
