@@ -150,6 +150,12 @@
                 <p class="mt-2 text-[11px] text-slate-500">
                   {{ formatDateTime(item.tanggal_gangguan) }}
                 </p>
+                <div v-if="item.kpi" class="mt-2 flex items-center gap-2">
+                  <span class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
+                    KPI {{ formatKpiScore(item.kpi.score) }}
+                  </span>
+                  <span class="text-[10px] text-slate-500">{{ formatDurationMinutes(item.kpi.total_minutes) }}</span>
+                </div>
               </div>
               <span class="shrink-0 text-[10px] text-slate-500">#{{ index + 1 }}</span>
             </div>
@@ -237,6 +243,12 @@
             <p class="mt-1 text-xs text-slate-400 sm:text-sm">
               {{ item.lokasi_opd || '-' }}
             </p>
+            <div v-if="item.kpi" class="mt-2 flex items-center gap-2">
+              <span class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-medium text-emerald-200">
+                KPI {{ formatKpiScore(item.kpi.score) }}
+              </span>
+              <span class="text-[10px] text-slate-500">{{ formatDurationMinutes(item.kpi.total_minutes) }}</span>
+            </div>
             <div class="mt-2 flex items-center justify-between gap-3 text-[11px] text-slate-500">
               <span>Tanggal input:</span>
               <span class="text-slate-300">{{ formatDateTime(item.tanggal_gangguan) }}</span>
@@ -474,6 +486,46 @@
                   {{ viewItem.status || 'BELUM DIKERJAKAN' }}
                 </span>
                 <span class="text-sm text-slate-400">{{ formatDateTime(viewItem.tanggal_gangguan) }}</span>
+              </div>
+            </div>
+
+            <div
+              v-if="viewItem.kpi"
+              class="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 sm:col-span-2"
+            >
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-[0.2em] text-emerald-300/80">KPI Kegiatan</p>
+                  <p class="mt-1 text-sm text-slate-300">
+                    Dihitung dari waktu input, mulai pengerjaan, dan selesai pengerjaan.
+                  </p>
+                </div>
+                <span class="inline-flex items-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm font-semibold text-emerald-200">
+                  Skor {{ formatKpiScore(viewItem.kpi.score) }}
+                </span>
+              </div>
+
+              <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Response Time</p>
+                  <p class="mt-2 text-sm font-semibold text-white">{{ formatDurationMinutes(viewItem.kpi.response_minutes) }}</p>
+                  <p class="mt-1 text-xs text-slate-400">Target 30 menit</p>
+                </div>
+                <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Handling Time</p>
+                  <p class="mt-2 text-sm font-semibold text-white">{{ formatDurationMinutes(viewItem.kpi.handling_minutes) }}</p>
+                  <p class="mt-1 text-xs text-slate-400">Target 180 menit</p>
+                </div>
+                <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Total Lead Time</p>
+                  <p class="mt-2 text-sm font-semibold text-white">{{ formatDurationMinutes(viewItem.kpi.total_minutes) }}</p>
+                  <p class="mt-1 text-xs text-slate-400">Target 240 menit</p>
+                </div>
+                <div class="rounded-lg border border-slate-800 bg-slate-950/40 p-3">
+                  <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Skor KPI</p>
+                  <p class="mt-2 text-sm font-semibold text-white">{{ formatKpiScore(viewItem.kpi.score) }}</p>
+                  <p class="mt-1 text-xs text-slate-400">Rata-rata dari 3 metrik</p>
+                </div>
               </div>
             </div>
 
@@ -824,6 +876,32 @@ const formatTeamMembers = (value) => {
     .join(', ');
 };
 
+const formatDurationMinutes = (value) => {
+  const minutes = Number(value);
+  if (!Number.isFinite(minutes) || minutes < 0) return '-';
+
+  const roundedMinutes = Math.round(minutes);
+  const hours = Math.floor(roundedMinutes / 60);
+  const remainingMinutes = roundedMinutes % 60;
+
+  if (hours <= 0) {
+    return `${roundedMinutes} menit`;
+  }
+
+  if (remainingMinutes <= 0) {
+    return `${hours} jam`;
+  }
+
+  return `${hours} jam ${remainingMinutes} menit`;
+};
+
+const formatKpiScore = (value) => {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return '-';
+
+  return `${Math.round(score)}/100`;
+};
+
 const loadImageAsDataUrl = async (url) => {
   const response = await fetch(url, { credentials: 'same-origin' });
   if (!response.ok) {
@@ -932,6 +1010,20 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
   y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 3;
   y += drawBox(margin, y, contentWidth, 'Tim Bertugas', formatTeamMembers(item.tim_bertugas), 2) + 3;
   y += drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2) + 8;
+
+  if (item.kpi) {
+    const kpiRow1 = Math.max(
+      drawBox(leftX, y, columnWidth, 'Response Time', formatDurationMinutes(item.kpi.response_minutes), 1),
+      drawBox(rightX, y, columnWidth, 'Handling Time', formatDurationMinutes(item.kpi.handling_minutes), 1),
+    );
+    y += kpiRow1 + 4;
+
+    const kpiRow2 = Math.max(
+      drawBox(leftX, y, columnWidth, 'Total Lead Time', formatDurationMinutes(item.kpi.total_minutes), 1),
+      drawBox(rightX, y, columnWidth, 'KPI Score', formatKpiScore(item.kpi.score), 1),
+    );
+    y += kpiRow2 + 8;
+  }
 
   const uploadedDocuments = Array.isArray(documents) ? documents : [];
   if (uploadedDocuments.length > 0) {
