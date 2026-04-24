@@ -973,6 +973,65 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
     return boxH;
   };
 
+  const drawMetricBox = (x, y, w, label, value) => {
+    const padding = 2.2;
+    const labelH = 4.3;
+    const labelFontSize = 8.3;
+    const valueFontSize = 8.9;
+    const lineHeight = 3.4;
+
+    doc.setFont('times', 'normal');
+    doc.setFontSize(valueFontSize);
+    const lines = doc.splitTextToSize(normalizeText(value), w - padding * 2);
+    const boxH = labelH + 4 + Math.max(lines.length, 1) * lineHeight + 3;
+
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(x, y, w, boxH, 2.5, 2.5);
+
+    doc.setTextColor(...labelColor);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(labelFontSize);
+    doc.text(label, x + padding, y + 4.2);
+
+    doc.setTextColor(...bodyColor);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(valueFontSize);
+    doc.text(lines, x + padding, y + 9.4);
+
+    return boxH;
+  };
+
+  const drawCompactBox = (x, y, w, label, value, minLines = 2) => {
+    const padding = 2.5;
+    const labelH = 4.4;
+    const labelFontSize = 9;
+    const valueFontSize = 9.2;
+    const lineHeight = 3.7;
+
+    doc.setFont('times', 'normal');
+    doc.setFontSize(valueFontSize);
+    const lines = doc.splitTextToSize(normalizeText(value), w - padding * 2);
+    const actualLines = Math.max(lines.length, minLines);
+    const boxH = labelH + 4 + actualLines * lineHeight + 3;
+
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(x, y, w, boxH, 3, 3);
+
+    doc.setTextColor(...labelColor);
+    doc.setFont('times', 'bold');
+    doc.setFontSize(labelFontSize);
+    doc.text(label, x + padding, y + 4.3);
+
+    doc.setTextColor(...bodyColor);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(valueFontSize);
+    doc.text(lines, x + padding, y + 10);
+
+    return boxH;
+  };
+
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
@@ -995,35 +1054,30 @@ const drawPdfPage = async (doc, item, documents, pageNumber, totalPages) => {
   y += titleBoxH + 4;
 
   const row1 = Math.max(
-    drawBox(leftX, y, columnWidth, 'Tanggal Selesai', item.selesai_pengerjaan, 1),
-    drawBox(rightX, y, columnWidth, 'Lokasi/OPD', item.lokasi_opd, 2),
+    drawBox(leftX, y, columnWidth, 'Lokasi/OPD', item.lokasi_opd, 2),
+    drawBox(rightX, y, columnWidth, 'Status', item.status, 1),
   );
   y += row1 + 4;
 
-  const row2 = Math.max(
-    drawBox(leftX, y, columnWidth, 'Mulai Pengerjaan', item.mulai_pengerjaan, 1),
-    drawBox(rightX, y, columnWidth, 'Status', item.status, 1),
+  const metricGap = 3;
+  const metricColumnWidth = (contentWidth - metricGap * 3) / 4;
+  const metricX1 = margin;
+  const metricX2 = metricX1 + metricColumnWidth + metricGap;
+  const metricX3 = metricX2 + metricColumnWidth + metricGap;
+  const metricX4 = metricX3 + metricColumnWidth + metricGap;
+
+  const metricRow = Math.max(
+    drawMetricBox(metricX1, y, metricColumnWidth, 'Response Time', formatDurationMinutes(item.kpi?.response_minutes)),
+    drawMetricBox(metricX2, y, metricColumnWidth, 'Handling Time', formatDurationMinutes(item.kpi?.handling_minutes)),
+    drawMetricBox(metricX3, y, metricColumnWidth, 'Total Lead Time', formatDurationMinutes(item.kpi?.total_minutes)),
+    drawMetricBox(metricX4, y, metricColumnWidth, 'KPI Score', formatKpiScore(item.kpi?.score)),
   );
-  y += row2 + 4;
+  y += metricRow + 4;
 
-  y += drawBox(margin, y, contentWidth, 'Kendala', item.kendala, 2) + 3;
-  y += drawBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut, 2) + 3;
-  y += drawBox(margin, y, contentWidth, 'Tim Bertugas', formatTeamMembers(item.tim_bertugas), 2) + 3;
-  y += drawBox(margin, y, contentWidth, 'Keterangan', item.keterangan, 2) + 8;
-
-  if (item.kpi) {
-    const kpiRow1 = Math.max(
-      drawBox(leftX, y, columnWidth, 'Response Time', formatDurationMinutes(item.kpi.response_minutes), 1),
-      drawBox(rightX, y, columnWidth, 'Handling Time', formatDurationMinutes(item.kpi.handling_minutes), 1),
-    );
-    y += kpiRow1 + 4;
-
-    const kpiRow2 = Math.max(
-      drawBox(leftX, y, columnWidth, 'Total Lead Time', formatDurationMinutes(item.kpi.total_minutes), 1),
-      drawBox(rightX, y, columnWidth, 'KPI Score', formatKpiScore(item.kpi.score), 1),
-    );
-    y += kpiRow2 + 8;
-  }
+  y += drawCompactBox(margin, y, contentWidth, 'Kendala', item.kendala) + 3;
+  y += drawCompactBox(margin, y, contentWidth, 'Tindak Lanjut/Solusi', item.tindak_lanjut) + 3;
+  y += drawCompactBox(margin, y, contentWidth, 'Tim Bertugas', formatTeamMembers(item.tim_bertugas)) + 3;
+  y += drawCompactBox(margin, y, contentWidth, 'Keterangan', item.keterangan) + 8;
 
   const uploadedDocuments = Array.isArray(documents) ? documents : [];
   if (uploadedDocuments.length > 0) {
